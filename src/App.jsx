@@ -2,31 +2,80 @@ import React, { useState, useEffect } from 'react'
 import Navbar from './components/Navbar'
 import HeroSection from './components/HeroSection'
 import TopicCards from './components/TopicCards'
-import { FlaskConical, ShieldCheck, Sparkles, BookOpen, Atom } from 'lucide-react'
+import ModuleModal from './components/ModuleModal'
+import SearchBar from './components/SearchBar'
+import FeaturesSection from './components/FeaturesSection'
+import { FlaskConical, Sparkles } from 'lucide-react'
+import { MODULES_DATA } from './data/modulesData'
 import './App.css'
 
-const STORAGE_KEY = 'kimiaku-progres'
+// Aturan AGENTS.md: Gunakan satu kunci awalan kimiaku- untuk localStorage
+const STORAGE_PROGRESS_KEY = 'kimiaku-progres'
+const STORAGE_QUIZ_KEY = 'kimiaku-kuis'
+const STORAGE_POE_KEY = 'kimiaku-poe'
 
-function App() {
-  // Progres anonim menggunakan kunci berawalan kimiaku- sesuai aturan AGENTS.md
+export default function App() {
+  // 1. Progres Modul Selesai
   const [completedTopics, setCompletedTopics] = useState(() => {
     try {
-      const saved = localStorage.getItem(STORAGE_KEY)
+      const saved = localStorage.getItem(STORAGE_PROGRESS_KEY)
       return saved ? JSON.parse(saved) : []
     } catch {
       return []
     }
   })
 
-  // Sinkronisasi ke localStorage setiap ada perubahan status progres
+  // 2. Skor Kuis Anonim
+  const [quizScores, setQuizScores] = useState(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_QUIZ_KEY)
+      return saved ? JSON.parse(saved) : {}
+    } catch {
+      return {}
+    }
+  })
+
+  // 3. Catatan Penyelesaian Simulasi POE
+  const [poeRecords, setPoeRecords] = useState(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_POE_KEY)
+      return saved ? JSON.parse(saved) : []
+    } catch {
+      return []
+    }
+  })
+
+  // State Modal Pembelajaran & Pencarian
+  const [activeModuleId, setActiveModuleId] = useState(null)
+  const [activeModuleTab, setActiveModuleTab] = useState('materi') // 'materi' | 'simulasi' | 'kuis'
+  const [isSearchOpen, setIsSearchOpen] = useState(false)
+
+  // Sinkronisasi data ke localStorage secara otomatis
   useEffect(() => {
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(completedTopics))
+      localStorage.setItem(STORAGE_PROGRESS_KEY, JSON.stringify(completedTopics))
     } catch (e) {
       console.warn('Gagal menyimpan progres ke localStorage:', e)
     }
   }, [completedTopics])
 
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_QUIZ_KEY, JSON.stringify(quizScores))
+    } catch (e) {
+      console.warn('Gagal menyimpan nilai kuis ke localStorage:', e)
+    }
+  }, [quizScores])
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_POE_KEY, JSON.stringify(poeRecords))
+    } catch (e) {
+      console.warn('Gagal menyimpan data POE ke localStorage:', e)
+    }
+  }, [poeRecords])
+
+  // Handler toggle status modul selesai
   const handleToggleTopic = (topicId) => {
     setCompletedTopics((prev) => {
       if (prev.includes(topicId)) {
@@ -37,15 +86,51 @@ function App() {
     })
   }
 
+  // Handler simpan skor kuis
+  const handleSaveQuizScore = (moduleId, score) => {
+    setQuizScores((prev) => ({
+      ...prev,
+      [moduleId]: Math.max(prev[moduleId] || 0, score)
+    }))
+    // Jika skor kuis lulus (>= 60), otomatis tandai modul sebagai dipelajari
+    if (score >= 60 && !completedTopics.includes(moduleId)) {
+      setCompletedTopics((prev) => [...prev, moduleId])
+    }
+  }
+
+  // Handler selesaikan aktivitas POE
+  const handleCompletePoe = (moduleId) => {
+    setPoeRecords((prev) => {
+      if (!prev.includes(moduleId)) {
+        return [...prev, moduleId]
+      }
+      return prev
+    })
+  }
+
+  // Handler reset semua data progres anonim
   const handleResetProgress = () => {
-    if (window.confirm('Apakah Anda yakin ingin mengatur ulang progres belajar modul?')) {
+    if (window.confirm('Apakah Anda yakin ingin mengatur ulang semua progres belajar, simulasi POE, dan skor kuis?')) {
       setCompletedTopics([])
+      setQuizScores({})
+      setPoeRecords([])
       try {
-        localStorage.removeItem(STORAGE_KEY)
+        localStorage.removeItem(STORAGE_PROGRESS_KEY)
+        localStorage.removeItem(STORAGE_QUIZ_KEY)
+        localStorage.removeItem(STORAGE_POE_KEY)
       } catch (e) {
-        console.warn('Gagal menghapus progres:', e)
+        console.warn('Gagal membersihkan data:', e)
       }
     }
+  }
+
+  const handleOpenModule = (moduleId, tab = 'materi') => {
+    setActiveModuleId(moduleId)
+    setActiveModuleTab(tab)
+  }
+
+  const handleCloseModule = () => {
+    setActiveModuleId(null)
   }
 
   const handleStartLearning = () => {
@@ -55,69 +140,63 @@ function App() {
     }
   }
 
+  const activeModule = MODULES_DATA.find((m) => m.id === activeModuleId)
+
   return (
     <div className="app-shell">
-      {/* 1. Navbar dengan Identitas Media & Indikator Progres Anonim */}
+      {/* 1. Header / Navbar dengan Navigasi Langsung Semua Modul & Pencarian */}
       <Navbar
         completedTopics={completedTopics}
-        totalTopics={3}
+        totalTopics={MODULES_DATA.length}
+        quizScores={quizScores}
         onResetProgress={handleResetProgress}
+        onOpenSearch={() => setIsSearchOpen(true)}
+        onSelectModule={handleOpenModule}
       />
 
       <main className="main-content">
-        {/* 2. Hero dengan Judul dan Tombol "Mulai Belajar" */}
-        <HeroSection onStartLearning={handleStartLearning} />
+        {/* 2. Hero Section Laju Reaksi */}
+        <HeroSection
+          onStartLearning={handleStartLearning}
+          onExplorePoe={() => handleOpenModule('faktor-laju', 'simulasi')}
+        />
 
-        {/* 3. Tiga Kartu Materi: Stoikiometri, Termokimia, dan Larutan Asam-Basa */}
+        {/* 3. Tiga Kartu Modul Utama (Suhu/Katalis/Luas/Konsentrasi, Teori Tumbukan, Makroskopis) */}
         <TopicCards
           completedTopics={completedTopics}
           onToggleTopicProgress={handleToggleTopic}
+          onOpenModule={handleOpenModule}
+          quizScores={quizScores}
+          poeRecords={poeRecords}
         />
 
-        {/* Seksi Keunggulan Belajar KimiaKu */}
-        <section id="keunggulan" className="features-section">
-          <div className="features-header">
-            <h2 className="features-title">Mengapa Belajar di KimiaKu?</h2>
-            <p className="features-desc">
-              Dirancang khusus untuk siswa SMA kelas X agar konsep abstrak kimia menjadi lebih terbayang dan nyata.
-            </p>
-          </div>
-
-          <div className="features-grid">
-            <div className="feature-card">
-              <div className="feature-icon-wrapper emerald">
-                <Atom size={22} />
-              </div>
-              <h3 className="feature-card-title">Visualisasi Model Konsep</h3>
-              <p className="feature-card-text">
-                Bukan sekadar deretan teks. Siswa dapat melihat pergerakan partikel, rasio mol, dan skala pH secara langsung.
-              </p>
-            </div>
-
-            <div className="feature-card">
-              <div className="feature-icon-wrapper amber">
-                <BookOpen size={22} />
-              </div>
-              <h3 className="feature-card-title">Kaidah Notasi Baku</h3>
-              <p className="feature-card-text">
-                Semua rumus ditulis dengan format standar kimia menggunakan subskrip dan superskrip resmi (misal H<sub>2</sub>SO<sub>4</sub> dan Ca<sup>2+</sup>).
-              </p>
-            </div>
-
-            <div className="feature-card">
-              <div className="feature-icon-wrapper indigo">
-                <ShieldCheck size={22} />
-              </div>
-              <h3 className="feature-card-title">100% Anonim & Privat</h3>
-              <p className="feature-card-text">
-                Tanpa registrasi, tanpa email, dan tanpa pelacakan data pribadi. Semua progres belajar disimpan aman di perangkat Anda.
-              </p>
-            </div>
-          </div>
-        </section>
+        {/* 4. Seksi Pedagogis & Keunggulan POE */}
+        <FeaturesSection />
       </main>
 
-      {/* Footer Beranda */}
+      {/* 5. Modal Pembelajaran Komprehensif (Materi Lengkap, Simulasi POE, Kuis) */}
+      {activeModule && (
+        <ModuleModal
+          module={activeModule}
+          initialTab={activeModuleTab}
+          onClose={handleCloseModule}
+          isCompleted={completedTopics.includes(activeModule.id)}
+          onToggleComplete={handleToggleTopic}
+          onSaveQuizScore={handleSaveQuizScore}
+          savedQuizScore={quizScores[activeModule.id] ?? null}
+          onCompletePoe={handleCompletePoe}
+          isPoeCompleted={poeRecords.includes(activeModule.id)}
+        />
+      )}
+
+      {/* 6. Fitur Pencarian Materi PRD.md */}
+      <SearchBar
+        isOpen={isSearchOpen}
+        onClose={() => setIsSearchOpen(false)}
+        onSelectModule={handleOpenModule}
+      />
+
+      {/* 7. Footer Beranda */}
       <footer className="footer-container">
         <div className="footer-inner">
           <div className="footer-brand">
@@ -126,17 +205,18 @@ function App() {
               <span className="footer-brand-name">KimiaKu</span>
             </div>
             <p className="footer-copy">
-              Media pembelajaran kimia interaktif untuk siswa SMA kelas X. Dibuat dengan pendekatan visual & bermakna.
+              Media pembelajaran kimia interaktif untuk siswa SMA kelas XI Fase F. Berbasis Sintaks POE (Predict, Observe, Explain)
+              dan representasi makroskopis-mikroskopis laju reaksi.
             </p>
           </div>
 
           <div className="footer-meta">
             <div className="footer-badge">
               <Sparkles size={14} />
-              <span>React + Vite • Bebas Akun • Sesuai PRD.md & AGENTS.md</span>
+              <span>React + Vite • 100% Bebas Akun & Anonim • Sesuai PRD.md & AGENTS.md</span>
             </div>
             <div className="footer-copyright">
-              © 2026 KimiaKu. Semua materi disusun untuk kepentingan edukasi sains.
+              © 2026 KimiaKu. Semua materi disusun untuk kepentingan edukasi sains kelas XI Fase F.
             </div>
           </div>
         </div>
@@ -144,5 +224,3 @@ function App() {
     </div>
   )
 }
-
-export default App

@@ -1,36 +1,43 @@
 :root {
-  --bg-main: #0a0e17;
-  --bg-card: rgba(17, 24, 39, 0.75);
-  --bg-card-hover: rgba(24, 33, 53, 0.9);
-  --bg-glass: rgba(15, 23, 42, 0.65);
-  --border-subtle: rgba(255, 255, 255, 0.08);
-  --border-card: rgba(255, 255, 255, 0.12);
-  --border-hover: rgba(255, 255, 255, 0.24);
+  --bg-main: #FFFFFF;
+  --bg-card: rgba(223, 235, 235, 0.55);
+  --bg-card-hover: rgba(223, 235, 235, 0.85);
+  --bg-card-pink: rgba(255, 203, 203, 0.45);
+  --bg-glass: rgba(255, 255, 255, 0.9);
+  --border-subtle: #DFEBEB;
+  --border-card: rgba(158, 161, 212, 0.3);
+  --border-hover: #9EA1D4;
 
-  --text-main: #f1f5f9;
-  --text-muted: #94a3b8;
-  --text-dim: #64748b;
+  --text-main: #2D3748;
+  --text-muted: #4A5568;
+  --text-dim: #718096;
 
-  --color-emerald: #10b981;
-  --color-emerald-glow: rgba(16, 185, 129, 0.25);
-  --color-amber: #f59e0b;
-  --color-amber-glow: rgba(245, 158, 11, 0.25);
-  --color-indigo: #6366f1;
-  --color-indigo-glow: rgba(99, 102, 241, 0.25);
-  --color-cyan: #06b6d4;
-  --color-cyan-glow: rgba(6, 182, 212, 0.25);
+  /* Palet Warna Pastel Aksesori Resmi */
+  --color-primary: #FD8A8A; /* Coral Pink */
+  --color-secondary: #9EA1D4; /* Periwinkle Blue */
+  --color-teal: #A8D1D1; /* Soft Teal */
+  --color-yellow: #F1F7B5; /* Pastel Yellow */
+  --color-ice: #DFEBEB; /* Ice Blue */
+  --color-pink: #FFCBCB; /* Soft Pink */
+
+  /* Semantic Highlights */
+  --color-emerald: #0D9488;
+  --color-amber: #D97706;
+  --color-indigo: #6366F1;
+  --color-cyan: #0284C7;
+  --color-purple: #8B5CF6;
 
   --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, monospace;
 
-  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
-  --shadow-md: 0 8px 24px -4px rgba(0, 0, 0, 0.45);
-  --shadow-lg: 0 16px 36px -6px rgba(0, 0, 0, 0.6);
-  --shadow-glow: 0 0 35px rgba(6, 182, 212, 0.15);
+  --shadow-sm: 0 2px 8px rgba(45, 55, 72, 0.05);
+  --shadow-md: 0 8px 24px -4px rgba(45, 55, 72, 0.09);
+  --shadow-lg: 0 16px 36px -6px rgba(45, 55, 72, 0.14);
+  --shadow-glow: 0 0 30px rgba(253, 138, 138, 0.22);
 
   font-family: var(--font-sans);
   line-height: 1.6;
-  color-scheme: dark;
+  color-scheme: light;
   color: var(--text-main);
   background-color: var(--bg-main);
   font-synthesis: none;
@@ -51,12 +58,12 @@ html {
 
 body {
   min-height: 100vh;
-  background-color: var(--bg-main);
+  background-color: #FFFFFF;
   background-image: 
-    radial-gradient(circle at 15% 15%, rgba(6, 182, 212, 0.08) 0%, transparent 45%),
-    radial-gradient(circle at 85% 25%, rgba(99, 102, 241, 0.08) 0%, transparent 50%),
-    radial-gradient(circle at 50% 85%, rgba(16, 185, 129, 0.06) 0%, transparent 45%),
-    linear-gradient(180deg, #0a0e17 0%, #0d121f 50%, #0a0e17 100%);
+    radial-gradient(circle at 10% 12%, rgba(223, 235, 235, 0.7) 0%, transparent 45%),
+    radial-gradient(circle at 88% 18%, rgba(255, 203, 203, 0.55) 0%, transparent 50%),
+    radial-gradient(circle at 50% 80%, rgba(168, 209, 209, 0.4) 0%, transparent 45%),
+    linear-gradient(180deg, #FFFFFF 0%, #F9FBFC 50%, #FFFFFF 100%);
   background-attachment: fixed;
   color: var(--text-main);
   overflow-x: hidden;
@@ -70,35 +77,36 @@ body {
 
 /* Chemical Subscripts & Superscripts Styling */
 sub, sup {
-  font-size: 0.72em;
+  font-size: 0.74em;
   line-height: 0;
   position: relative;
   vertical-align: baseline;
-  font-weight: 600;
+  font-weight: 700;
+  color: inherit;
 }
 
 sup {
-  top: -0.5em;
+  top: -0.45em;
 }
 
 sub {
-  bottom: -0.25em;
+  bottom: -0.22em;
 }
 
-/* Custom Scrollbar */
+/* Custom Scrollbar (Light Theme) */
 ::-webkit-scrollbar {
   width: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #0a0e17;
+  background: #F8FAFC;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #1e293b;
+  background: #CBD5E1;
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #334155;
+  background: #94A3B8;
 }
