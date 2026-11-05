@@ -168,8 +168,95 @@ export const modulFaktorLaju = {
         ]
       }
     }
+  ],
+
+  // 5 Soal Pilihan Ganda Kuis Diagnostik Laju Reaksi (Bab 3)
+  kuisDiagnostik: [
+    {
+      id: 'kuis-1',
+      faktor: 'Konsentrasi Pereaksi',
+      pertanyaan:
+        'Pada reaksi antara pita magnesium (Mg) dan larutan asam klorida (HCl), peningkatan konsentrasi HCl dari 0,1 M menjadi 1,0 M menyebabkan laju pembentukan gas H₂ meningkat signifikan. Penjelasan ilmiah yang tepat menurut teori tumbukan adalah...',
+      opsi: [
+        'Peningkatan konsentrasi memperbanyak jumlah partikel per satuan volume sehingga frekuensi tumbukan antarpartikel pereaksi bertambah besar.',
+        'Peningkatan konsentrasi menurunkan ambang energi aktivasi (Eₐ) reaksi sehingga tumbukan lebih mudah menghasilkan zat baru.',
+        'Peningkatan konsentrasi menaikkan energi kinetik rata-rata partikel pereaksi sehingga partikel bergerak jauh lebih cepat.',
+        'Peningkatan konsentrasi mengubah susunan kristal pita magnesium menjadi lebih lunak dan mudah larut.'
+      ],
+      jawabanBenar: 'A',
+      jawabanBenarIndex: 0,
+      pembahasan:
+        'Peningkatan konsentrasi larutan asam menambah kerapatan atau jumlah partikel ion H⁺ per satuan volume. Akibatnya, jarak antarpartikel semakin rapat sehingga frekuensi tumbukan antarpartikel per satuan waktu meningkat. Peluang terjadinya tumbukan efektif pun meningkat, membuat pembentukan gas H₂ berlangsung lebih cepat. Perhatikan bahwa konsentrasi tidak mengubah energi aktivasi (Eₐ) maupun energi kinetik rata-rata partikel.'
+    },
+    {
+      id: 'kuis-2',
+      faktor: 'Suhu Sistem',
+      pertanyaan:
+        'Pemanasan larutan pada reaksi kimia dari suhu 25 °C menjadi 35 °C (kenaikan suhu ΔT = 10 °C) umumnya melipatgandakan laju reaksi. Alasan utama peningkatan laju reaksi akibat kenaikan temperatur (ΔT) adalah...',
+      opsi: [
+        'Kenaikan suhu menurunkan nilai energi aktivasi (Eₐ) sehingga bukit energi reaksi lebih mudah dilompati.',
+        'Kenaikan suhu meningkatkan energi kinetik rata-rata partikel sehingga fraksi molekul dengan energi ≥ Eₐ bertambah drastis.',
+        'Kenaikan suhu memperbesar ukuran diameter partikel pereaksi sehingga luas bidang benturan molekul meluas.',
+        'Kenaikan suhu menghilangkan gaya tolak elektrostatik antarinti atom pada saat terjadi benturan partikel.'
+      ],
+      jawabanBenar: 'B',
+      jawabanBenarIndex: 1,
+      pembahasan:
+        'Suhu merupakan representasi energi kinetik rata-rata partikel. Berdasarkan kurva distribusi Maxwell-Boltzmann, peningkatan temperatur (ΔT) menaikkan energi kinetik partikel sehingga persentase (fraksi) molekul yang memiliki energi kinetik sama dengan atau melebihi energi aktivasi (E ≥ Eₐ) melonjak drastis. Faktor ini menjadi pemicu utama melipatgandanya laju reaksi, bukan karena penurunan nilai Eₐ (nilai Eₐ bernilai konstan untuk reaksi yang sama).'
+    },
+    {
+      id: 'kuis-3',
+      faktor: 'Luas Permukaan Sentuh',
+      pertanyaan:
+        'Dua tabung reaksi masing-masing diisi 10 mL larutan HCl 1 M. Tabung I dimasukkan 2 gram bongkahan kalsium karbonat (CaCO₃), sedangkan Tabung II dimasukkan 2 gram serbuk CaCO₃. Tabung II menghasilkan gas CO₂ jauh lebih cepat dibanding Tabung I karena...',
+      opsi: [
+        'Bentuk serbuk memiliki massa jenis yang lebih tinggi dibanding bentuk bongkahan pada massa yang sama.',
+        'Bentuk serbuk memiliki total luas permukaan bidang sentuh yang jauh lebih besar sehingga kontak tumbukan efektif meningkat.',
+        'Bentuk serbuk menurunkan energi aktivasi (Eₐ) penguraian kalsium karbonat oleh larutan asam.',
+        'Bentuk serbuk melepaskan panas spontan yang memanaskan larutan asam klorida di dalam tabung.'
+      ],
+      jawabanBenar: 'B',
+      jawabanBenarIndex: 1,
+      pembahasan:
+        'Pada reaksi heterogen antara zat padat dan larutan, reaksi hanya dapat berlangsung pada permukaan batas kontak antarfase. Dengan menghaluskan 2 gram CaCO₃ menjadi serbuk, luas permukaan total bidang kontak yang terpapar langsung ke larutan asam meluas berkali-kali lipat. Hal ini membuka jauh lebih banyak area tumbukan simultan dengan ion H⁺ per detik, sehingga laju reaksi dan laju pembentukan gas CO₂ meningkat drastis.'
+    },
+    {
+      id: 'kuis-4',
+      faktor: 'Pengaruh Katalis',
+      pertanyaan:
+        'Larutan hidrogen peroksida (H₂O₂) terurai sangat lambat pada suhu ruang, namun penambahan sedikit larutan FeCl₃ atau serbuk MnO₂ menyebabkan pelepasan gelembung gas O₂ yang sangat lebat seketika. Prinsip kerja katalis dalam mempercepat reaksi tersebut adalah...',
+      opsi: [
+        'Menyediakan rute atau mekanisme reaksi alternatif dengan energi aktivasi (Eₐ) yang lebih rendah tanpa mengubah entalpi reaksi (ΔH).',
+        'Menaikkan energi kinetik molekul H₂O₂ sehingga kecepatan partikel bertambah setara dengan pemanasan larutan.',
+        'Bereaksi sebagai zat pereaksi utama yang habis terkonsumsi untuk menghasilkan volume gas O₂ melebihi batas stoikiometri.',
+        'Mengubah nilai perubahan entalpi reaksi (ΔH) menjadi jauh lebih eksotermik sehingga panas reaksi mendorong laju reaksi.'
+      ],
+      jawabanBenar: 'A',
+      jawabanBenarIndex: 0,
+      pembahasan:
+        'Katalis mempercepat laju reaksi kimia dengan cara berinteraksi sementara membentuk senyawa perantara (kompleks teraktivasi), sehingga membuka mekanisme reaksi alternatif yang membutuhkan energi aktivasi (Eₐ) lebih rendah. Pada suhu yang sama, jumlah partikel yang sanggup melewati rintangan Eₐ yang rendah menjadi jauh lebih melimpah. Di akhir reaksi, katalis diperoleh kembali tanpa mengalami perubahan kimia permanen, serta tidak memengaruhi entalpi reaksi (ΔH).'
+    },
+    {
+      id: 'kuis-5',
+      faktor: 'Teori Tumbukan',
+      pertanyaan:
+        'Menurut Teori Tumbukan (Collision Theory), tidak setiap benturan yang terjadi antarpartikel reaktan dapat menghasilkan zat baru. Tumbukan antarmolekul berhasil menjadi tumbukan efektif jika memenuhi kriteria mutlak...',
+      opsi: [
+        'Partikel saling bertumbukan dalam fase gas murni dengan volume wadah yang diperbesar.',
+        'Partikel bertumbukan dengan orientasi ruang yang tepat dan memiliki energi kinetik sama dengan atau melebihi energi aktivasi (E ≥ Eₐ).',
+        'Partikel bertumbukan tepat di pusat massa larutan tanpa bersentuhan dengan dinding wadah reaksi.',
+        'Partikel melepaskan seluruh energi potensialnya menjadi energi cahaya pada saat terjadi benturan.'
+      ],
+      jawabanBenar: 'B',
+      jawabanBenarIndex: 1,
+      pembahasan:
+        'Dua syarat mutlak terjadinya tumbukan efektif menurut Teori Tumbukan adalah: (1) Syarat Energi: energi kinetik total partikel saat bertumbukan harus melampaui rintangan energi aktivasi (E ≥ Eₐ) agar ikatan lama dapat terputus dan terbentuk kompleks teraktivasi. (2) Syarat Geometri/Orientasi: partikel harus bertumbukan dengan orientasi sudut ruang yang tepat agar atom-atom yang akan berikatan saling berhadapan. Jika salah satu syarat tidak terpenuhi, partikel hanya akan memantul kembali tanpa terjadi reaksi.'
+    }
   ]
 }
+
+// Ekspor bernama untuk kuis diagnostik
+export const kuisDiagnostik = modulFaktorLaju.kuisDiagnostik
 
 // Alias ekspor agar fleksibel untuk berbagai format pemanggilan komponen
 export const lajuReaksiData = modulFaktorLaju

@@ -1,7 +1,7 @@
 import React from 'react'
-import { ArrowRight, Sparkles, Atom, Flame, Eye, Activity } from 'lucide-react'
+import { ArrowRight, Sparkles, Atom, Flame, Eye, Activity, HelpCircle } from 'lucide-react'
 
-export default function HeroSection({ onStartLearning, onExplorePoe }) {
+export default function HeroSection({ onStartLearning, onExplorePoe, onOpenKuis }) {
   const handleScrollToModules = () => {
     if (onStartLearning) {
       onStartLearning()
@@ -53,6 +53,18 @@ export default function HeroSection({ onStartLearning, onExplorePoe }) {
               <Eye size={18} />
               <span>Coba Simulasi POE</span>
             </button>
+
+            {onOpenKuis && (
+              <button
+                type="button"
+                className="btn-tertiary-hero"
+                onClick={onOpenKuis}
+                title="Buka Kuis Diagnostik 5 Soal Laju Reaksi"
+              >
+                <HelpCircle size={18} />
+                <span>Kuis Diagnostik (5 Soal)</span>
+              </button>
+            )}
           </div>
 
           {/* Kartu Ringkas Karakteristik KimiaKu */}

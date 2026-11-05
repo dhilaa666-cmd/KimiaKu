@@ -5,6 +5,8 @@ import TopicCards from './components/TopicCards'
 import ModuleModal from './components/ModuleModal'
 import SearchBar from './components/SearchBar'
 import FeaturesSection from './components/FeaturesSection'
+import KuisLajuReaksi from './components/KuisLajuReaksi'
+import { resetQuizStore } from './lib/localStore'
 import { FlaskConical, Sparkles } from 'lucide-react'
 import { MODULES_DATA } from './data/modulesData'
 import './App.css'
@@ -45,7 +47,8 @@ export default function App() {
     }
   })
 
-  // State Modal Pembelajaran & Pencarian
+  // State Navigasi Halaman, Modal Pembelajaran & Pencarian
+  const [currentView, setCurrentView] = useState('home') // 'home' | 'kuis'
   const [activeModuleId, setActiveModuleId] = useState(null)
   const [activeModuleTab, setActiveModuleTab] = useState('materi') // 'materi' | 'simulasi' | 'kuis'
   const [isSearchOpen, setIsSearchOpen] = useState(false)
@@ -114,6 +117,7 @@ export default function App() {
       setCompletedTopics([])
       setQuizScores({})
       setPoeRecords([])
+      resetQuizStore() // Reset database lokal kuis diagnostik
       try {
         localStorage.removeItem(STORAGE_PROGRESS_KEY)
         localStorage.removeItem(STORAGE_QUIZ_KEY)
@@ -125,8 +129,26 @@ export default function App() {
   }
 
   const handleOpenModule = (moduleId, tab = 'materi') => {
+    if (moduleId === 'home') {
+      setCurrentView('home')
+      setActiveModuleId(null)
+      return
+    }
+    if (moduleId === 'kuis-diagnostik' || (moduleId === 'faktor-laju' && tab === 'kuis')) {
+      setCurrentView('kuis')
+      setActiveModuleId(null)
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+      return
+    }
+    setCurrentView('home')
     setActiveModuleId(moduleId)
     setActiveModuleTab(tab)
+  }
+
+  const handleOpenKuis = () => {
+    setCurrentView('kuis')
+    setActiveModuleId(null)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
   const handleCloseModule = () => {
@@ -144,7 +166,7 @@ export default function App() {
 
   return (
     <div className="app-shell">
-      {/* 1. Header / Navbar dengan Navigasi Langsung Semua Modul & Pencarian */}
+      {/* 1. Header / Navbar dengan Navigasi Langsung Semua Modul, Kuis Diagnostik & Pencarian */}
       <Navbar
         completedTopics={completedTopics}
         totalTopics={MODULES_DATA.length}
@@ -152,26 +174,41 @@ export default function App() {
         onResetProgress={handleResetProgress}
         onOpenSearch={() => setIsSearchOpen(true)}
         onSelectModule={handleOpenModule}
+        onOpenKuis={handleOpenKuis}
+        currentView={currentView}
       />
 
       <main className="main-content">
-        {/* 2. Hero Section Laju Reaksi */}
-        <HeroSection
-          onStartLearning={handleStartLearning}
-          onExplorePoe={() => handleOpenModule('faktor-laju', 'simulasi')}
-        />
+        {currentView === 'kuis' ? (
+          <KuisLajuReaksi
+            onBack={() => {
+              setCurrentView('home')
+              window.scrollTo({ top: 0, behavior: 'smooth' })
+            }}
+            onCompleteScore={(score) => handleSaveQuizScore('faktor-laju', score)}
+          />
+        ) : (
+          <>
+            {/* 2. Hero Section Laju Reaksi */}
+            <HeroSection
+              onStartLearning={handleStartLearning}
+              onExplorePoe={() => handleOpenModule('faktor-laju', 'simulasi')}
+              onOpenKuis={handleOpenKuis}
+            />
 
-        {/* 3. Tiga Kartu Modul Utama (Suhu/Katalis/Luas/Konsentrasi, Teori Tumbukan, Makroskopis) */}
-        <TopicCards
-          completedTopics={completedTopics}
-          onToggleTopicProgress={handleToggleTopic}
-          onOpenModule={handleOpenModule}
-          quizScores={quizScores}
-          poeRecords={poeRecords}
-        />
+            {/* 3. Tiga Kartu Modul Utama (Suhu/Katalis/Luas/Konsentrasi, Teori Tumbukan, Makroskopis) */}
+            <TopicCards
+              completedTopics={completedTopics}
+              onToggleTopicProgress={handleToggleTopic}
+              onOpenModule={handleOpenModule}
+              quizScores={quizScores}
+              poeRecords={poeRecords}
+            />
 
-        {/* 4. Seksi Pedagogis & Keunggulan POE */}
-        <FeaturesSection />
+            {/* 4. Seksi Pedagogis & Keunggulan POE */}
+            <FeaturesSection />
+          </>
+        )}
       </main>
 
       {/* 5. Modal Pembelajaran Komprehensif (Materi Lengkap, Simulasi POE, Kuis) */}
