@@ -10,6 +10,7 @@ import {
 } from 'lucide-react'
 import PoeSimulation from './PoeSimulation'
 import QuizModal from './QuizModal'
+import KuisLajuReaksi from './KuisLajuReaksi'
 
 export default function ModuleModal({
   module,
@@ -257,12 +258,18 @@ export default function ModuleModal({
           {/* TAB 3: KUIS MODUL DENGAN UMPAN BALIK SEKETIKA */}
           {activeTab === 'kuis' && (
             <div className="quiz-tab-wrapper">
-              <QuizModal
-                module={module}
-                onSaveQuizScore={onSaveQuizScore}
-                savedScore={savedQuizScore}
-                onClose={onClose}
-              />
+              {module.id === 'faktor-laju' ? (
+                <KuisLajuReaksi
+                  onCompleteScore={(score) => onSaveQuizScore(module.id, score)}
+                />
+              ) : (
+                <QuizModal
+                  module={module}
+                  onSaveQuizScore={onSaveQuizScore}
+                  savedScore={savedQuizScore}
+                  onClose={onClose}
+                />
+              )}
             </div>
           )}
         </div>

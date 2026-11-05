@@ -5,7 +5,8 @@ import {
   Search,
   Menu,
   X,
-  ChevronDown
+  ChevronDown,
+  HelpCircle
 } from 'lucide-react'
 import { MODULES_DATA } from '../data/modulesData'
 
@@ -15,7 +16,9 @@ export default function Navbar({
   quizScores = {},
   onResetProgress,
   onOpenSearch,
-  onSelectModule
+  onSelectModule,
+  onOpenKuis,
+  currentView = 'home'
 }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [modulesDropdownOpen, setModulesDropdownOpen] = useState(false)
@@ -45,7 +48,10 @@ export default function Navbar({
         {/* Identitas Media */}
         <div
           className="navbar-brand"
-          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+          onClick={() => {
+            if (onSelectModule) onSelectModule('home')
+            window.scrollTo({ top: 0, behavior: 'smooth' })
+          }}
           title="Beranda KimiaKu"
         >
           <div className="brand-logo-wrap">
@@ -65,10 +71,26 @@ export default function Navbar({
         <nav className="navbar-links" aria-label="Navigasi Utama">
           <button
             type="button"
-            className="nav-btn"
-            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+            className={`nav-btn ${currentView === 'home' ? 'active' : ''}`}
+            onClick={() => {
+              if (onSelectModule) onSelectModule('home')
+              window.scrollTo({ top: 0, behavior: 'smooth' })
+            }}
           >
             Beranda
+          </button>
+
+          {/* Akses Langsung Kuis Diagnostik (Bab 3) */}
+          <button
+            type="button"
+            className={`nav-btn nav-btn-kuis ${currentView === 'kuis' ? 'active' : ''}`}
+            onClick={() => {
+              if (onOpenKuis) onOpenKuis()
+            }}
+            title="Kuis Diagnostik 5 Soal Laju Reaksi & Penyimpanan Local First"
+          >
+            <HelpCircle size={15} />
+            <span>Kuis Diagnostik</span>
           </button>
 
           {/* Dropdown Akses Langsung Semua Modul */}
@@ -187,13 +209,26 @@ export default function Navbar({
           <div className="mobile-nav-links">
             <button
               type="button"
-              className="mobile-link"
+              className={`mobile-link ${currentView === 'home' ? 'active' : ''}`}
               onClick={() => {
+                if (onSelectModule) onSelectModule('home')
                 window.scrollTo({ top: 0, behavior: 'smooth' })
                 setMobileMenuOpen(false)
               }}
             >
               Beranda
+            </button>
+
+            <button
+              type="button"
+              className={`mobile-link ${currentView === 'kuis' ? 'active' : ''}`}
+              onClick={() => {
+                if (onOpenKuis) onOpenKuis()
+                setMobileMenuOpen(false)
+              }}
+            >
+              <HelpCircle size={16} style={{ marginRight: '8px', verticalAlign: 'middle' }} />
+              <span>Kuis Diagnostik Bab 3 (5 Soal)</span>
             </button>
 
             <div className="mobile-section-divider">Modul Laju Reaksi (Akses Langsung):</div>

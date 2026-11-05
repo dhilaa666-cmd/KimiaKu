@@ -178,15 +178,25 @@ export default function TopicCards({
                 )}
 
                 {quizScore !== undefined ? (
-                  <span className="badge-chip quiz-done">
+                  <button
+                    type="button"
+                    className="badge-chip quiz-done clickable"
+                    onClick={() => onOpenModule(module.id, 'kuis')}
+                    title="Buka Kuis Diagnostik (Lihat Skor & Pembahasan)"
+                  >
                     <CheckCircle2 size={12} />
                     <span>Skor Kuis: {quizScore}%</span>
-                  </span>
+                  </button>
                 ) : (
-                  <span className="badge-chip quiz-pending">
+                  <button
+                    type="button"
+                    className="badge-chip quiz-pending clickable"
+                    onClick={() => onOpenModule(module.id, 'kuis')}
+                    title="Kerjakan Kuis Diagnostik 5 Soal"
+                  >
                     <HelpCircle size={12} />
                     <span>Kuis 5 Soal</span>
-                  </span>
+                  </button>
                 )}
               </div>
 
