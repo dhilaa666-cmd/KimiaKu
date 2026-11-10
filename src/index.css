@@ -110,3 +110,32 @@ sub {
 ::-webkit-scrollbar-thumb:hover {
   background: #94A3B8;
 }
+
+/* ========================================================
+   RESPONSIVE UTILITY CLASSES (TAILWIND COMPATIBLE)
+   ======================================================== */
+.hidden { display: none !important; }
+.block { display: block !important; }
+.flex { display: flex !important; }
+.grid { display: grid !important; }
+
+.rounded-xl { border-radius: 14px !important; }
+.rounded-2xl { border-radius: 20px !important; }
+.rounded-3xl { border-radius: 28px !important; }
+.rounded-full { border-radius: 9999px !important; }
+
+@media (min-width: 768px) {
+  .md\:hidden { display: none !important; }
+  .md\:block { display: block !important; }
+  .md\:flex { display: flex !important; }
+  .md\:grid { display: grid !important; }
+  .md\:flex-row { flex-direction: row !important; }
+  .md\:w-64 { width: 16rem !important; }
+}
+
+@media (max-width: 767px) {
+  .max-md\:hidden { display: none !important; }
+  .max-md\:flex { display: flex !important; }
+  .max-md\:block { display: block !important; }
+}
+

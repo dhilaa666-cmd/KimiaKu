@@ -1,7 +1,8 @@
 import React from 'react'
 import { ArrowRight, Sparkles, Atom, Flame, Eye, Activity, HelpCircle } from 'lucide-react'
 
-export default function HeroSection({ onStartLearning, onExplorePoe, onOpenKuis }) {
+export default function HeroSection({ onStartLearning, onExplorePoe, onOpenKuis, currentUser, isGuest }) {
+  const displayName = currentUser?.displayName || currentUser?.email?.split('@')[0] || (isGuest ? 'Siswa Tamu' : 'Siswa')
   const handleScrollToModules = () => {
     if (onStartLearning) {
       onStartLearning()
@@ -18,6 +19,22 @@ export default function HeroSection({ onStartLearning, onExplorePoe, onOpenKuis 
       <div className="hero-grid">
         {/* Kolom Kiri: Teks & Aksi */}
         <div className="hero-content">
+          {/* Dashboard Greeting Banner (Acuan Image 1 Hireism Dashboard) */}
+          <div className="hero-greeting-banner">
+            <div className="greeting-banner-text">
+              <span className="greeting-tag">Selamat Belajar, {displayName}! ✨</span>
+              <p className="greeting-sub">Kuasai konsep laju reaksi lewat pengamatan fenomena POE dan visualisasi tumbukan partikel.</p>
+            </div>
+            <button
+              type="button"
+              className="btn-greeting-action"
+              onClick={handleScrollToModules}
+            >
+              <span>Jelajahi Modul</span>
+              <ArrowRight size={14} />
+            </button>
+          </div>
+
           <div className="hero-badge">
             <Sparkles size={16} className="badge-sparkle-icon" />
             <span>Platform Pembelajaran Kimia Fase F • SMA Kelas XI</span>

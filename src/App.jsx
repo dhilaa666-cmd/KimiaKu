@@ -1,15 +1,17 @@
 import React, { useState, useEffect } from 'react'
-import Navbar from './components/Navbar'
+import ResponsiveLayout from './components/ResponsiveLayout'
 import HeroSection from './components/HeroSection'
 import TopicCards from './components/TopicCards'
-import ModuleModal from './components/ModuleModal'
+import ModuleDetailPage from './components/ModuleDetailPage'
 import SearchBar from './components/SearchBar'
 import FeaturesSection from './components/FeaturesSection'
 import KuisLajuReaksi from './components/KuisLajuReaksi'
+import PanelGuru from './components/PanelGuru'
+import ReferensiSection from './components/ReferensiSection'
 import LoginPage from './components/LoginPage'
 import { subscribeToAuth } from './lib/firebase'
 import { resetQuizStore } from './lib/localStore'
-import { FlaskConical, Sparkles } from 'lucide-react'
+import { FlaskConical } from 'lucide-react'
 import { MODULES_DATA } from './data/modulesData'
 import './App.css'
 
@@ -61,7 +63,7 @@ export default function App() {
   })
 
   // State Navigasi Halaman, Modal Pembelajaran & Pencarian
-  const [currentView, setCurrentView] = useState('home') // 'home' | 'kuis'
+  const [currentView, setCurrentView] = useState('dashboard') // 'dashboard' | 'modul' | 'kuis' | 'guru' | 'referensi'
   const [activeModuleId, setActiveModuleId] = useState(null)
   const [activeModuleTab, setActiveModuleTab] = useState('materi') // 'materi' | 'simulasi' | 'kuis'
   const [isSearchOpen, setIsSearchOpen] = useState(false)
@@ -158,31 +160,39 @@ export default function App() {
     }
   }
 
+  // Handler Navigasi Halaman Mandiri (Single-Page Isolation)
+  const handleNavigate = (viewId) => {
+    const target = viewId === 'home' ? 'dashboard' : viewId
+    setCurrentView(target)
+    setActiveModuleId(null)
+    window.scrollTo({ top: 0, behavior: 'instant' })
+    const scrollContainer = document.querySelector('.main-content-scroll-area')
+    if (scrollContainer) {
+      scrollContainer.scrollTo({ top: 0, behavior: 'instant' })
+    }
+  }
+
   const handleOpenModule = (moduleId, tab = 'materi') => {
-    if (moduleId === 'home') {
-      setCurrentView('home')
-      setActiveModuleId(null)
+    if (moduleId === 'home' || moduleId === 'dashboard') {
+      handleNavigate('dashboard')
       return
     }
     if (moduleId === 'kuis-diagnostik' || (moduleId === 'faktor-laju' && tab === 'kuis')) {
-      setCurrentView('kuis')
-      setActiveModuleId(null)
-      window.scrollTo({ top: 0, behavior: 'smooth' })
+      handleNavigate('kuis')
       return
     }
-    setCurrentView('home')
+    setCurrentView('modul')
     setActiveModuleId(moduleId)
     setActiveModuleTab(tab)
+    window.scrollTo({ top: 0, behavior: 'instant' })
+    const scrollContainer = document.querySelector('.main-content-scroll-area')
+    if (scrollContainer) {
+      scrollContainer.scrollTo({ top: 0, behavior: 'instant' })
+    }
   }
 
   const handleOpenKuis = () => {
-    setCurrentView('kuis')
-    setActiveModuleId(null)
-    window.scrollTo({ top: 0, behavior: 'smooth' })
-  }
-
-  const handleCloseModule = () => {
-    setActiveModuleId(null)
+    handleNavigate('kuis')
   }
 
   const handleLogout = () => {
@@ -196,10 +206,7 @@ export default function App() {
   }
 
   const handleStartLearning = () => {
-    const el = document.getElementById('modul-belajar')
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth' })
-    }
+    handleNavigate('modul')
   }
 
   const activeModule = MODULES_DATA.find((m) => m.id === activeModuleId)
@@ -244,70 +251,94 @@ export default function App() {
     )
   }
 
-  // 3. Pengguna telah login atau masuk sebagai tamu: Izinkan akses ke Navbar & Aplikasi Utama
+  // 3. Pengguna telah login atau masuk sebagai tamu: Izinkan akses ke Layout Responsif & Aplikasi Utama
   return (
-    <div className="app-shell">
-      {/* 1. Header / Navbar dengan Navigasi Langsung Semua Modul, Kuis Diagnostik & Pencarian */}
-      <Navbar
-        completedTopics={completedTopics}
-        totalTopics={MODULES_DATA.length}
+    <>
+      <ResponsiveLayout
+        currentView={currentView}
+        onNavigate={handleNavigate}
+        currentUser={currentUser}
+        isGuest={isGuest}
+        onLogout={handleLogout}
+        completedTopicsCount={completedTopics.length}
+        totalTopicsCount={MODULES_DATA.length}
         quizScores={quizScores}
         onResetProgress={handleResetProgress}
         onOpenSearch={() => setIsSearchOpen(true)}
-        onSelectModule={handleOpenModule}
-        onOpenKuis={handleOpenKuis}
-        currentView={currentView}
-        isGuest={isGuest}
-        onLogout={handleLogout}
-      />
-
-      <main className="main-content">
-        {currentView === 'kuis' ? (
-          <KuisLajuReaksi
-            onBack={() => {
-              setCurrentView('home')
-              window.scrollTo({ top: 0, behavior: 'smooth' })
-            }}
-            onCompleteScore={(score) => handleSaveQuizScore('faktor-laju', score)}
-          />
+      >
+        {/* Render HANYA SATU komponen aktif di dalam <main> (Single-Page Isolation) */}
+        {currentView === 'modul' ? (
+          activeModule ? (
+            <ModuleDetailPage
+              module={activeModule}
+              initialTab={activeModuleTab}
+              onBack={() => {
+                setActiveModuleId(null)
+                window.scrollTo({ top: 0, behavior: 'instant' })
+                const scrollContainer = document.querySelector('.main-content-scroll-area')
+                if (scrollContainer) scrollContainer.scrollTo({ top: 0, behavior: 'instant' })
+              }}
+              isCompleted={completedTopics.includes(activeModule.id)}
+              onToggleComplete={handleToggleTopic}
+              onSaveQuizScore={handleSaveQuizScore}
+              savedQuizScore={quizScores[activeModule.id] ?? null}
+              onCompletePoe={handleCompletePoe}
+              isPoeCompleted={poeRecords.includes(activeModule.id)}
+              onOpenKuis={handleOpenKuis}
+              currentUser={currentUser}
+              isGuest={isGuest}
+            />
+          ) : (
+            <div className="isolated-page-view modul-page-view">
+              <div className="page-header-intro">
+                <span className="page-badge-pill">Modul Interaktif POE</span>
+                <h2 className="page-title-main">Eksplorasi Faktor Laju Reaksi</h2>
+                <p className="page-subtitle-main">
+                  Pelajari 3 modul kinetika kimia dengan pendekatan Predict – Observe – Explain pada representasi makroskopis dan sub-mikroskopis partikulat.
+                </p>
+              </div>
+              <TopicCards
+                completedTopics={completedTopics}
+                onToggleTopicProgress={handleToggleTopic}
+                onOpenModule={handleOpenModule}
+                quizScores={quizScores}
+                poeRecords={poeRecords}
+              />
+            </div>
+          )
+        ) : currentView === 'kuis' ? (
+          <div className="isolated-page-view kuis-page-view">
+            <KuisLajuReaksi
+              onBack={() => handleNavigate('dashboard')}
+              onCompleteScore={(score) => handleSaveQuizScore('faktor-laju', score)}
+            />
+          </div>
+        ) : currentView === 'guru' ? (
+          <div className="isolated-page-view guru-page-view">
+            <PanelGuru
+              onBackToDashboard={() => handleNavigate('dashboard')}
+              currentUser={currentUser}
+              isGuest={isGuest}
+            />
+          </div>
+        ) : currentView === 'referensi' ? (
+          <div className="isolated-page-view referensi-page-view">
+            <ReferensiSection />
+          </div>
         ) : (
-          <>
-            {/* 2. Hero Section Laju Reaksi */}
+          /* Dashboard / Beranda: Tampilkan HANYA hero section, ucapan selamat datang, dan ikhtisar singkat. Hapus daftar modul/kuis dari halaman ini. */
+          <div className="isolated-page-view dashboard-page-view">
             <HeroSection
               onStartLearning={handleStartLearning}
               onExplorePoe={() => handleOpenModule('faktor-laju', 'simulasi')}
               onOpenKuis={handleOpenKuis}
+              currentUser={currentUser}
+              isGuest={isGuest}
             />
-
-            {/* 3. Tiga Kartu Modul Utama (Suhu/Katalis/Luas/Konsentrasi, Teori Tumbukan, Makroskopis) */}
-            <TopicCards
-              completedTopics={completedTopics}
-              onToggleTopicProgress={handleToggleTopic}
-              onOpenModule={handleOpenModule}
-              quizScores={quizScores}
-              poeRecords={poeRecords}
-            />
-
-            {/* 4. Seksi Pedagogis & Keunggulan POE */}
             <FeaturesSection />
-          </>
+          </div>
         )}
-      </main>
-
-      {/* 5. Modal Pembelajaran Komprehensif (Materi Lengkap, Simulasi POE, Kuis) */}
-      {activeModule && (
-        <ModuleModal
-          module={activeModule}
-          initialTab={activeModuleTab}
-          onClose={handleCloseModule}
-          isCompleted={completedTopics.includes(activeModule.id)}
-          onToggleComplete={handleToggleTopic}
-          onSaveQuizScore={handleSaveQuizScore}
-          savedQuizScore={quizScores[activeModule.id] ?? null}
-          onCompletePoe={handleCompletePoe}
-          isPoeCompleted={poeRecords.includes(activeModule.id)}
-        />
-      )}
+      </ResponsiveLayout>
 
       {/* 6. Fitur Pencarian Materi PRD.md */}
       <SearchBar
@@ -315,32 +346,6 @@ export default function App() {
         onClose={() => setIsSearchOpen(false)}
         onSelectModule={handleOpenModule}
       />
-
-      {/* 7. Footer Beranda */}
-      <footer className="footer-container">
-        <div className="footer-inner">
-          <div className="footer-brand">
-            <div className="footer-logo-row">
-              <FlaskConical size={20} className="footer-icon" />
-              <span className="footer-brand-name">KimiaKu</span>
-            </div>
-            <p className="footer-copy">
-              Media pembelajaran kimia interaktif untuk siswa SMA kelas XI Fase F. Berbasis Sintaks POE (Predict, Observe, Explain)
-              dan representasi makroskopis-mikroskopis laju reaksi.
-            </p>
-          </div>
-
-          <div className="footer-meta">
-            <div className="footer-badge">
-              <Sparkles size={14} />
-              <span>React + Vite • 100% Bebas Akun & Anonim • Sesuai PRD.md & AGENTS.md</span>
-            </div>
-            <div className="footer-copyright">
-              © 2026 KimiaKu. Semua materi disusun untuk kepentingan edukasi sains kelas XI Fase F.
-            </div>
-          </div>
-        </div>
-      </footer>
-    </div>
+    </>
   )
 }

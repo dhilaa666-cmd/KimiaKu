@@ -11,6 +11,7 @@ import { db } from '../lib/firebase'
 
 // Kunci penyimpanan localStorage
 export const STORAGE_KEY_QUIZ = 'kimiaku-kuis-data'
+export const STORAGE_KEY_POE_RECORDS = 'kimiaku-poe-submissions'
 export const STORAGE_KEY_SYNC = 'kimiaku-sync-status'
 export const LEGACY_STORAGE_KEY = 'kimiaku:laju-reaksi:v1'
 
@@ -280,6 +281,213 @@ export async function retrySyncQuiz(user) {
   return await syncQuizToFirestore(user, current)
 }
 
+// ========================================================
+// PENGELOLAAN DATA SINTAKS POE (Predict, Observe, Explain)
+// ========================================================
+
+/**
+ * Struktur default catatan POE
+ */
+export function getDefaultPoeRecord(moduleId = 'faktor-laju') {
+  return {
+    id: generateAttemptId(),
+    moduleId,
+    predictChoiceId: null,
+    predictText: '',
+    observeNotes: '',
+    explainText: '',
+    isSubmitted: false,
+    syncStatus: SYNC_STATUS.LOCAL,
+    syncError: null,
+    submittedAt: null,
+    lastSyncedAt: null,
+    ownerId: 'guest',
+    alias: 'Siswa Tamu',
+    userEmail: null
+  }
+}
+
+/**
+ * Membaca semua catatan POE dari localStorage
+ * @returns {Record<string, Object>}
+ */
+export function getAllStoredPoeSubmissions() {
+  if (typeof window === 'undefined' || !window.localStorage) return {}
+  try {
+    const raw = window.localStorage.getItem(STORAGE_KEY_POE_RECORDS)
+    return raw ? JSON.parse(raw) : {}
+  } catch {
+    return {}
+  }
+}
+
+/**
+ * Membaca catatan POE untuk satu modul tertentu
+ * @param {string} moduleId
+ * @returns {Object}
+ */
+export function getStoredPoeData(moduleId) {
+  const all = getAllStoredPoeSubmissions()
+  return all[moduleId] || getDefaultPoeRecord(moduleId)
+}
+
+/**
+ * Menyimpan draf pengerjaan POE ke localStorage
+ */
+export function savePoeDraft({ moduleId, predictChoiceId, predictText, observeNotes, explainText }) {
+  if (typeof window === 'undefined' || !window.localStorage) return null
+  const all = getAllStoredPoeSubmissions()
+  const existing = all[moduleId] || getDefaultPoeRecord(moduleId)
+  const updated = {
+    ...existing,
+    moduleId,
+    predictChoiceId: predictChoiceId !== undefined ? predictChoiceId : existing.predictChoiceId,
+    predictText: predictText !== undefined ? predictText : existing.predictText,
+    observeNotes: observeNotes !== undefined ? observeNotes : existing.observeNotes,
+    explainText: explainText !== undefined ? explainText : existing.explainText,
+    updatedAt: new Date().toISOString()
+  }
+  all[moduleId] = updated
+  try {
+    window.localStorage.setItem(STORAGE_KEY_POE_RECORDS, JSON.stringify(all))
+  } catch (e) {
+    console.warn('Gagal menyimpan draf POE ke localStorage:', e)
+  }
+  return updated
+}
+
+/**
+ * Menyimpan submission final POE siswa
+ */
+export function savePoeSubmission({
+  moduleId,
+  predictChoiceId,
+  predictText,
+  observeNotes,
+  explainText,
+  currentUser,
+  isGuest
+}) {
+  if (typeof window === 'undefined' || !window.localStorage) return null
+  const all = getAllStoredPoeSubmissions()
+  const existing = all[moduleId] || getDefaultPoeRecord(moduleId)
+  const ownerId = currentUser?.uid || (isGuest ? 'guest' : 'local-user')
+  const alias = currentUser?.displayName || currentUser?.email?.split('@')[0] || (isGuest ? 'Siswa Tamu' : 'Siswa')
+  const userEmail = currentUser?.email || null
+
+  const submittedRecord = {
+    ...existing,
+    moduleId,
+    predictChoiceId: predictChoiceId ?? existing.predictChoiceId,
+    predictText: predictText ?? existing.predictText,
+    observeNotes: observeNotes ?? existing.observeNotes,
+    explainText: explainText ?? existing.explainText,
+    isSubmitted: true,
+    submittedAt: new Date().toISOString(),
+    ownerId,
+    alias,
+    userEmail,
+    syncStatus: currentUser?.uid ? SYNC_STATUS.PENDING : SYNC_STATUS.LOCAL,
+    syncError: null
+  }
+  all[moduleId] = submittedRecord
+  try {
+    window.localStorage.setItem(STORAGE_KEY_POE_RECORDS, JSON.stringify(all))
+  } catch (e) {
+    console.warn('Gagal menyimpan submission POE:', e)
+  }
+  return submittedRecord
+}
+
+/**
+ * Sinkronisasi data sintaks POE ke Firestore
+ */
+export async function syncPoeToFirestore(user, moduleId) {
+  const all = getAllStoredPoeSubmissions()
+  const record = all[moduleId]
+  if (!record) return { success: false, error: 'Data POE tidak ditemukan' }
+
+  if (!user || !user.uid) {
+    const updated = {
+      ...record,
+      syncStatus: SYNC_STATUS.LOCAL,
+      syncError: 'Pengguna belum login Google'
+    }
+    all[moduleId] = updated
+    try {
+      window.localStorage.setItem(STORAGE_KEY_POE_RECORDS, JSON.stringify(all))
+    } catch (e) {
+      console.warn(e)
+    }
+    return { success: false, record: updated, error: 'Belum login' }
+  }
+
+  const pendingRecord = {
+    ...record,
+    ownerId: user.uid,
+    alias: user.displayName || user.email?.split('@')[0] || 'Siswa',
+    userEmail: user.email || null,
+    syncStatus: SYNC_STATUS.PENDING,
+    syncError: null
+  }
+  all[moduleId] = pendingRecord
+  try {
+    window.localStorage.setItem(STORAGE_KEY_POE_RECORDS, JSON.stringify(all))
+  } catch (e) {
+    console.warn(e)
+  }
+
+  try {
+    const firestorePayload = {
+      id: pendingRecord.id,
+      ownerId: user.uid,
+      alias: pendingRecord.alias,
+      userEmail: pendingRecord.userEmail,
+      moduleId: pendingRecord.moduleId,
+      activityId: `poe-${pendingRecord.moduleId}`,
+      predictChoiceId: pendingRecord.predictChoiceId,
+      predictText: pendingRecord.predictText,
+      observeNotes: pendingRecord.observeNotes,
+      explainText: pendingRecord.explainText,
+      submittedAt: pendingRecord.submittedAt || new Date().toISOString(),
+      receivedAt: serverTimestamp(),
+      lastSyncedAt: new Date().toISOString()
+    }
+
+    const docId = `${user.uid}_${pendingRecord.moduleId}`
+    const docRef = doc(db, 'poe_submissions', docId)
+    await setDoc(docRef, firestorePayload, { merge: true })
+
+    const syncedRecord = {
+      ...pendingRecord,
+      syncStatus: SYNC_STATUS.SYNCED,
+      syncError: null,
+      lastSyncedAt: new Date().toISOString()
+    }
+    all[moduleId] = syncedRecord
+    try {
+      window.localStorage.setItem(STORAGE_KEY_POE_RECORDS, JSON.stringify(all))
+    } catch (e) {
+      console.warn(e)
+    }
+    return { success: true, record: syncedRecord }
+  } catch (error) {
+    console.error('Gagal sinkronisasi data POE ke Firestore:', error)
+    const failedRecord = {
+      ...pendingRecord,
+      syncStatus: SYNC_STATUS.FAILED,
+      syncError: error.message || 'Gagal terhubung ke Firestore'
+    }
+    all[moduleId] = failedRecord
+    try {
+      window.localStorage.setItem(STORAGE_KEY_POE_RECORDS, JSON.stringify(all))
+    } catch (e) {
+      console.warn(e)
+    }
+    return { success: false, record: failedRecord, error: failedRecord.syncError }
+  }
+}
+
 // Sistem Listener / Observer sederhana untuk notifikasi perubahan status sinkronisasi
 const listeners = new Set()
 
@@ -305,6 +513,7 @@ function notifySyncListeners(record) {
 export default {
   SYNC_STATUS,
   STORAGE_KEY_QUIZ,
+  STORAGE_KEY_POE_RECORDS,
   STORAGE_KEY_SYNC,
   LEGACY_STORAGE_KEY,
   generateAttemptId,
@@ -315,6 +524,12 @@ export default {
   resetQuizData,
   syncQuizToFirestore,
   retrySyncQuiz,
-  subscribeSyncStatus
+  subscribeSyncStatus,
+  getDefaultPoeRecord,
+  getAllStoredPoeSubmissions,
+  getStoredPoeData,
+  savePoeDraft,
+  savePoeSubmission,
+  syncPoeToFirestore
 }
 
