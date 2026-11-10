@@ -3,6 +3,10 @@ import {
   getAuth,
   GoogleAuthProvider,
   signInWithPopup,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  updateProfile,
+  signInAnonymously,
   signOut,
   onAuthStateChanged
 } from 'firebase/auth'
@@ -44,6 +48,43 @@ export async function loginWithGoogle() {
 }
 
 /**
+ * Login dengan Email dan Password
+ * @param {string} email
+ * @param {string} password
+ * @returns {Promise<import('firebase/auth').UserCredential>}
+ */
+export async function loginWithEmail(email, password) {
+  return await signInWithEmailAndPassword(auth, email.trim(), password)
+}
+
+/**
+ * Pendaftaran Akun Baru dengan Email dan Password
+ * @param {string} email
+ * @param {string} password
+ * @param {string} [displayName]
+ * @returns {Promise<import('firebase/auth').UserCredential>}
+ */
+export async function registerWithEmail(email, password, displayName = '') {
+  const userCredential = await createUserWithEmailAndPassword(auth, email.trim(), password)
+  if (displayName && userCredential.user) {
+    try {
+      await updateProfile(userCredential.user, { displayName: displayName.trim() })
+    } catch (err) {
+      console.warn('Gagal memperbarui display name profil:', err)
+    }
+  }
+  return userCredential
+}
+
+/**
+ * Login sebagai Tamu (Anonymous Auth)
+ * @returns {Promise<import('firebase/auth').UserCredential>}
+ */
+export async function loginAsGuest() {
+  return await signInAnonymously(auth)
+}
+
+/**
  * Logout dari sesi akun pengguna saat ini
  * @returns {Promise<void>}
  */
@@ -66,7 +107,9 @@ export default {
   googleProvider,
   db,
   loginWithGoogle,
+  loginWithEmail,
+  registerWithEmail,
+  loginAsGuest,
   logoutUser,
   subscribeToAuth
 }
-

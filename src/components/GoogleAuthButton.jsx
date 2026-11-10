@@ -8,7 +8,8 @@ import {
   LogOut,
   ChevronDown,
   CloudUpload,
-  UserCheck
+  UserCheck,
+  User
 } from 'lucide-react'
 import {
   loginWithGoogle,
@@ -23,7 +24,7 @@ import {
   subscribeSyncStatus
 } from '../utils/storage'
 
-export default function GoogleAuthButton({ onSyncComplete }) {
+export default function GoogleAuthButton({ onSyncComplete, onLogout, isGuest = false }) {
   const [currentUser, setCurrentUser] = useState(null)
   const [authLoading, setAuthLoading] = useState(true)
   const [quizRecord, setQuizRecord] = useState(() => getStoredQuizData())
@@ -92,8 +93,12 @@ export default function GoogleAuthButton({ onSyncComplete }) {
   const handleLogout = async () => {
     setUserDropdownOpen(false)
     try {
+      localStorage.removeItem('kimiaku-guest-session')
       await logoutUser()
       setCurrentUser(null)
+      if (onLogout) {
+        onLogout()
+      }
     } catch (err) {
       console.error('Logout error:', err)
     }
@@ -288,7 +293,25 @@ export default function GoogleAuthButton({ onSyncComplete }) {
             </div>
           )}
         </div>
+      ) : isGuest ? (
+        /* Status: Mode Tamu (Guest Mode) */
+        <div className="guest-profile-menu">
+          <div className="guest-badge-pill" title="Anda sedang belajar dalam Mode Tamu (Data tersimpan di perangkat lokal)">
+            <User size={13} />
+            <span>Tamu</span>
+          </div>
+          <button
+            type="button"
+            className="btn-guest-logout"
+            onClick={handleLogout}
+            title="Keluar dari sesi Tamu dan kembali ke halaman Masuk"
+          >
+            <LogOut size={13} />
+            <span>Keluar</span>
+          </button>
+        </div>
       ) : (
+        /* Status: Belum Login (Tamu / Lokal) */
         /* Status: Belum Login (Tamu / Lokal) */
         <button
           type="button"

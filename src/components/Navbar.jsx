@@ -19,7 +19,9 @@ export default function Navbar({
   onOpenSearch,
   onSelectModule,
   onOpenKuis,
-  currentView = 'home'
+  currentView = 'home',
+  isGuest = false,
+  onLogout
 }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [modulesDropdownOpen, setModulesDropdownOpen] = useState(false)
@@ -166,7 +168,7 @@ export default function Navbar({
           </button>
 
           {/* Tombol Login Google & Status Sinkronisasi Local-First */}
-          <GoogleAuthButton />
+          <GoogleAuthButton isGuest={isGuest} onLogout={onLogout} />
 
           {/* Indikator Progres Anonim (Sesuai AGENTS.md kunci awalan kimiaku-) */}
           <div className="progress-pill" title="Progres belajar & kuis disimpan anonim di peramban Anda">
@@ -236,7 +238,7 @@ export default function Navbar({
             </button>
 
             <div className="mobile-auth-wrapper">
-              <GoogleAuthButton />
+              <GoogleAuthButton isGuest={isGuest} onLogout={onLogout} />
             </div>
 
             <div className="mobile-section-divider">Modul Laju Reaksi (Akses Langsung):</div>

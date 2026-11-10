@@ -4434,4 +4434,659 @@ button.badge-chip.clickable:hover {
   justify-content: space-between;
 }
 
+/* ========================================================
+   GUEST PROFILE BADGE & LOGOUT (NAVBAR)
+   ======================================================== */
+.guest-profile-menu {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.guest-badge-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(223, 235, 235, 0.6);
+  border: 1px solid rgba(158, 161, 212, 0.4);
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.btn-guest-logout {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 10px;
+  background: transparent;
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  color: var(--text-muted);
+  font-family: inherit;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-guest-logout:hover {
+  background: rgba(255, 203, 203, 0.4);
+  border-color: #FD8A8A;
+  color: #E53E3E;
+}
+
+/* ========================================================
+   GATEKEEPER LOADING STATE
+   ======================================================== */
+.app-gatekeeper-loading {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  background: #FFFFFF;
+}
+
+.gatekeeper-spinner-box {
+  width: 64px;
+  height: 64px;
+  border-radius: 20px;
+  background: linear-gradient(135deg, #FD8A8A, #9EA1D4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #FFFFFF;
+  box-shadow: 0 10px 24px rgba(253, 138, 138, 0.35);
+  animation: pulseGlow 2s infinite ease-in-out;
+}
+
+@keyframes pulseGlow {
+  0%, 100% { transform: scale(1); box-shadow: 0 10px 24px rgba(253, 138, 138, 0.35); }
+  50% { transform: scale(1.05); box-shadow: 0 14px 32px rgba(253, 138, 138, 0.5); }
+}
+
+.gatekeeper-loading-text {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+/* ========================================================
+   LOGIN PAGE (SPLIT CARD 2 KOLOM)
+   Palet: Putih (#FFFFFF), Merah/Pink (#FD8A8A / #E53E3E)
+   ======================================================== */
+.login-page-container {
+  min-height: 100vh;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background-color: #F8FAFC;
+  background-image: 
+    radial-gradient(at 15% 20%, rgba(253, 138, 138, 0.12) 0px, transparent 50%),
+    radial-gradient(at 85% 80%, rgba(158, 161, 212, 0.14) 0px, transparent 50%);
+}
+
+.login-split-card {
+  width: 100%;
+  max-width: 960px;
+  min-height: 580px;
+  background: #FFFFFF;
+  border-radius: 28px;
+  box-shadow: 0 24px 64px -12px rgba(45, 55, 72, 0.14);
+  border: 1px solid rgba(223, 235, 235, 0.8);
+  display: grid;
+  grid-template-columns: 1.15fr 0.85fr;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+/* --------------------------------------------------------
+   KOLOM KIRI: FORM INPUT
+   -------------------------------------------------------- */
+.login-card-left {
+  padding: 44px 48px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  background: #FFFFFF;
+}
+
+.login-brand-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.login-logo-wrap {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #FD8A8A, #9EA1D4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #FFFFFF;
+  box-shadow: 0 4px 12px rgba(253, 138, 138, 0.35);
+}
+
+.login-brand-text {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.login-brand-text .brand-name {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: #2D3748;
+  letter-spacing: -0.02em;
+}
+
+.brand-badge-pill {
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 3px 8px;
+  background: #DFEBEB;
+  color: #2D3748;
+  border-radius: 999px;
+}
+
+.login-form-intro {
+  margin-bottom: 20px;
+}
+
+.login-heading {
+  font-size: 1.65rem;
+  font-weight: 800;
+  color: #2D3748;
+  letter-spacing: -0.02em;
+  margin: 0 0 6px 0;
+}
+
+.login-subheading {
+  font-size: 0.88rem;
+  color: var(--text-dim);
+  margin: 0;
+  line-height: 1.45;
+}
+
+/* Tombol Google Auth Full */
+.btn-google-auth-full {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 12px 18px;
+  background: #FFFFFF;
+  border: 1.5px solid var(--border-subtle);
+  border-radius: 14px;
+  color: var(--text-main);
+  font-family: inherit;
+  font-size: 0.92rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(45, 55, 72, 0.04);
+  transition: all 0.2s ease;
+}
+
+.btn-google-auth-full:hover:not(:disabled) {
+  background: rgba(223, 235, 235, 0.4);
+  border-color: #9EA1D4;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(45, 55, 72, 0.08);
+}
+
+.btn-google-auth-full:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Divider */
+.login-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 18px 0;
+}
+
+.divider-line {
+  flex: 1;
+  height: 1px;
+  background: var(--border-subtle);
+}
+
+.divider-text {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-dim);
+  text-transform: lowercase;
+}
+
+/* Form Fields */
+.login-email-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.form-label {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.input-icon-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-icon {
+  position: absolute;
+  left: 14px;
+  color: var(--text-dim);
+  pointer-events: none;
+}
+
+.form-input {
+  width: 100%;
+  padding: 11px 40px 11px 42px;
+  background: #FFFFFF;
+  border: 1.5px solid var(--border-subtle);
+  border-radius: 12px;
+  font-family: inherit;
+  font-size: 0.9rem;
+  color: #2D3748;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.form-input:focus {
+  border-color: #FD8A8A;
+  box-shadow: 0 0 0 3px rgba(253, 138, 138, 0.22);
+}
+
+.form-input::placeholder {
+  color: #A0AEC0;
+}
+
+.btn-toggle-eye {
+  position: absolute;
+  right: 12px;
+  background: transparent;
+  border: none;
+  color: var(--text-dim);
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  transition: color 0.15s ease;
+}
+
+.btn-toggle-eye:hover {
+  color: #2D3748;
+}
+
+/* Options Row: Remember Me & Guest Link */
+.form-options-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 2px;
+}
+
+.remember-me-checkbox {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  cursor: pointer;
+  user-select: none;
+}
+
+.remember-me-checkbox input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: #FD8A8A;
+  cursor: pointer;
+}
+
+.btn-link-guest {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: transparent;
+  border: none;
+  color: #0D9488;
+  font-family: inherit;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 4px 6px;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.btn-link-guest:hover:not(:disabled) {
+  background: rgba(168, 209, 209, 0.25);
+  color: #097268;
+}
+
+.btn-link-guest:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Alert Boxes */
+.login-alert-box {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  font-size: 0.84rem;
+  line-height: 1.45;
+}
+
+.login-alert-box.error {
+  background: rgba(255, 203, 203, 0.45);
+  border: 1px solid #FD8A8A;
+  color: #E53E3E;
+}
+
+.login-alert-box.success {
+  background: rgba(168, 209, 209, 0.4);
+  border: 1px solid #A8D1D1;
+  color: #0D9488;
+}
+
+.login-alert-box .alert-icon {
+  flex-shrink: 0;
+}
+
+/* Submit Button */
+.btn-submit-auth {
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 13px 20px;
+  background: linear-gradient(135deg, #FD8A8A, #fc7474);
+  border: none;
+  border-radius: 14px;
+  color: #FFFFFF;
+  font-family: inherit;
+  font-size: 0.95rem;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 6px 18px rgba(253, 138, 138, 0.35);
+  transition: all 0.25s ease;
+  margin-top: 4px;
+}
+
+.btn-submit-auth:hover:not(:disabled) {
+  background: linear-gradient(135deg, #fc7474, #f85e5e);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(253, 138, 138, 0.48);
+}
+
+.btn-submit-auth:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.mobile-toggle-footer {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 20px;
+  font-size: 0.84rem;
+  color: var(--text-dim);
+}
+
+.btn-toggle-link {
+  background: transparent;
+  border: none;
+  color: #FD8A8A;
+  font-family: inherit;
+  font-size: 0.84rem;
+  font-weight: 800;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+/* --------------------------------------------------------
+   KOLOM KANAN: PANEL SAMBUTAN WARNA PINK/RED GRADIENT
+   -------------------------------------------------------- */
+.login-card-right {
+  background: linear-gradient(145deg, #FD8A8A 0%, #F56565 50%, #E53E3E 100%);
+  color: #FFFFFF;
+  padding: 44px 40px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Subtle decorative circle in welcome panel */
+.login-card-right::before {
+  content: '';
+  position: absolute;
+  top: -80px;
+  right: -80px;
+  width: 260px;
+  height: 260px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.12);
+  pointer-events: none;
+}
+
+.login-card-right::after {
+  content: '';
+  position: absolute;
+  bottom: -60px;
+  left: -60px;
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
+  pointer-events: none;
+}
+
+.welcome-panel-inner {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.welcome-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  background: rgba(255, 255, 255, 0.22);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #FFFFFF;
+  width: fit-content;
+  backdrop-filter: blur(8px);
+}
+
+.welcome-title {
+  font-size: 2.1rem;
+  font-weight: 800;
+  color: #FFFFFF;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  margin: 0;
+}
+
+.welcome-desc {
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.92);
+  margin: 0;
+}
+
+.welcome-highlights {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 6px 0;
+}
+
+.welcome-highlight-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  background: rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  padding: 12px 14px;
+  border-radius: 14px;
+  backdrop-filter: blur(6px);
+}
+
+.highlight-bullet {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #FFFFFF;
+  margin-top: 2px;
+}
+
+.welcome-highlight-item strong {
+  display: block;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #FFFFFF;
+  margin-bottom: 2px;
+}
+
+.welcome-highlight-item p {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.85);
+  margin: 0;
+  line-height: 1.4;
+}
+
+.welcome-toggle-box {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.toggle-prompt {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.9);
+  margin: 0;
+}
+
+.btn-welcome-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 12px 22px;
+  background: transparent;
+  border: 2px solid #FFFFFF;
+  border-radius: 14px;
+  color: #FFFFFF;
+  font-family: inherit;
+  font-size: 0.92rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  width: fit-content;
+}
+
+.btn-welcome-toggle:hover {
+  background: #FFFFFF;
+  color: #E53E3E;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+/* --------------------------------------------------------
+   RESPONSIVE UNTUK LOGIN CARD
+   -------------------------------------------------------- */
+@media (max-width: 860px) {
+  .login-split-card {
+    grid-template-columns: 1fr;
+    max-width: 520px;
+    border-radius: 24px;
+  }
+
+  .login-card-right {
+    order: -1;
+    padding: 32px 28px;
+  }
+
+  .welcome-title {
+    font-size: 1.7rem;
+  }
+
+  .login-card-left {
+    padding: 32px 28px;
+  }
+
+  .mobile-toggle-footer {
+    display: flex;
+  }
+}
+
+@media (max-width: 480px) {
+  .login-page-container {
+    padding: 12px;
+  }
+
+  .login-card-left {
+    padding: 24px 20px;
+  }
+
+  .login-card-right {
+    padding: 24px 20px;
+  }
+
+  .form-options-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+}
+
+
 

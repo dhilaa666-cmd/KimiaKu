@@ -6,6 +6,8 @@ import ModuleModal from './components/ModuleModal'
 import SearchBar from './components/SearchBar'
 import FeaturesSection from './components/FeaturesSection'
 import KuisLajuReaksi from './components/KuisLajuReaksi'
+import LoginPage from './components/LoginPage'
+import { subscribeToAuth } from './lib/firebase'
 import { resetQuizStore } from './lib/localStore'
 import { FlaskConical, Sparkles } from 'lucide-react'
 import { MODULES_DATA } from './data/modulesData'
@@ -47,11 +49,39 @@ export default function App() {
     }
   })
 
+  // State Autentikasi Pengguna & Gatekeeper Wajib Login
+  const [currentUser, setCurrentUser] = useState(null)
+  const [isAuthLoading, setIsAuthLoading] = useState(true)
+  const [isGuest, setIsGuest] = useState(() => {
+    try {
+      return localStorage.getItem('kimiaku-guest-session') === 'true'
+    } catch {
+      return false
+    }
+  })
+
   // State Navigasi Halaman, Modal Pembelajaran & Pencarian
   const [currentView, setCurrentView] = useState('home') // 'home' | 'kuis'
   const [activeModuleId, setActiveModuleId] = useState(null)
   const [activeModuleTab, setActiveModuleTab] = useState('materi') // 'materi' | 'simulasi' | 'kuis'
   const [isSearchOpen, setIsSearchOpen] = useState(false)
+
+  // 0. Listener Autentikasi Firebase secara otomatis
+  useEffect(() => {
+    const unsubscribe = subscribeToAuth((user) => {
+      setCurrentUser(user)
+      setIsAuthLoading(false)
+      if (user) {
+        setIsGuest(false)
+        try {
+          localStorage.removeItem('kimiaku-guest-session')
+        } catch (e) {
+          console.warn(e)
+        }
+      }
+    })
+    return () => unsubscribe()
+  }, [])
 
   // Sinkronisasi data ke localStorage secara otomatis
   useEffect(() => {
@@ -155,6 +185,16 @@ export default function App() {
     setActiveModuleId(null)
   }
 
+  const handleLogout = () => {
+    setCurrentUser(null)
+    setIsGuest(false)
+    try {
+      localStorage.removeItem('kimiaku-guest-session')
+    } catch (e) {
+      console.warn('Gagal menghapus sesi tamu:', e)
+    }
+  }
+
   const handleStartLearning = () => {
     const el = document.getElementById('modul-belajar')
     if (el) {
@@ -164,6 +204,47 @@ export default function App() {
 
   const activeModule = MODULES_DATA.find((m) => m.id === activeModuleId)
 
+  // ========================================================
+  // GATEKEEPER / PROTECTED ROUTE (Wajib Login)
+  // ========================================================
+  // 1. Loading state saat memeriksa sesi login awal
+  if (isAuthLoading) {
+    return (
+      <div className="app-gatekeeper-loading">
+        <div className="gatekeeper-spinner-box">
+          <FlaskConical size={36} className="gatekeeper-logo-icon" />
+        </div>
+        <p className="gatekeeper-loading-text">Memeriksa sesi login KimiaKu...</p>
+      </div>
+    )
+  }
+
+  // 2. Jika belum login dan belum memilih mode tamu, kunci ke halaman LoginPage secara penuh
+  if (!currentUser && !isGuest) {
+    return (
+      <LoginPage
+        onLoginSuccess={(user) => {
+          setCurrentUser(user)
+          setIsGuest(false)
+          try {
+            localStorage.removeItem('kimiaku-guest-session')
+          } catch (e) {
+            console.warn(e)
+          }
+        }}
+        onContinueAsGuest={() => {
+          setIsGuest(true)
+          try {
+            localStorage.setItem('kimiaku-guest-session', 'true')
+          } catch (e) {
+            console.warn(e)
+          }
+        }}
+      />
+    )
+  }
+
+  // 3. Pengguna telah login atau masuk sebagai tamu: Izinkan akses ke Navbar & Aplikasi Utama
   return (
     <div className="app-shell">
       {/* 1. Header / Navbar dengan Navigasi Langsung Semua Modul, Kuis Diagnostik & Pencarian */}
@@ -176,6 +257,8 @@ export default function App() {
         onSelectModule={handleOpenModule}
         onOpenKuis={handleOpenKuis}
         currentView={currentView}
+        isGuest={isGuest}
+        onLogout={handleLogout}
       />
 
       <main className="main-content">
