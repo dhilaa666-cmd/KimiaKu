@@ -3948,3 +3948,490 @@ button.badge-chip.clickable:hover {
   }
 }
 
+/* ========================================================
+   AUTH GOOGLE & INDIKATOR STATUS PENGIRIMAN DATA (PERTEMUAN 04)
+   Status: Lokal / Menunggu Kirim / Terkirim / Gagal
+   ======================================================== */
+.auth-sync-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  position: relative;
+}
+
+.sync-status-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.sync-label-prefix {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--text-dim);
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  .sync-label-prefix {
+    display: inline-block;
+  }
+}
+
+/* Sync Badges */
+.sync-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 11px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.sync-badge .sync-icon {
+  flex-shrink: 0;
+}
+
+/* 1. Status: Lokal */
+.sync-badge.badge-local {
+  background: rgba(223, 235, 235, 0.65);
+  border: 1px solid rgba(158, 161, 212, 0.4);
+  color: var(--text-main);
+}
+
+/* 2. Status: Menunggu Kirim */
+.sync-badge.badge-pending {
+  background: rgba(241, 247, 181, 0.75);
+  border: 1px solid #D97706;
+  color: #B45309;
+}
+
+/* 3. Status: Terkirim */
+.sync-badge.badge-synced {
+  background: rgba(168, 209, 209, 0.5);
+  border: 1px solid #A8D1D1;
+  color: #0D9488;
+}
+
+/* 4. Status: Gagal */
+.sync-failed-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.sync-badge.badge-failed {
+  background: rgba(255, 203, 203, 0.55);
+  border: 1px solid #FD8A8A;
+  color: #E53E3E;
+}
+
+.btn-retry-sync {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  background: #FFFFFF;
+  border: 1px solid #FD8A8A;
+  border-radius: 999px;
+  color: #FD8A8A;
+  font-family: inherit;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-retry-sync:hover:not(:disabled) {
+  background: #FD8A8A;
+  color: #FFFFFF;
+  transform: translateY(-1px);
+}
+
+.btn-retry-sync:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Tombol Google Login */
+.btn-google-login {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 14px;
+  background: #FFFFFF;
+  border: 1.5px solid rgba(158, 161, 212, 0.45);
+  border-radius: 12px;
+  color: var(--text-main);
+  font-family: inherit;
+  font-size: 0.84rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(45, 55, 72, 0.05);
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.btn-google-login:hover {
+  background: #DFEBEB;
+  border-color: #9EA1D4;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(45, 55, 72, 0.09);
+}
+
+.google-icon-svg {
+  flex-shrink: 0;
+}
+
+.auth-btn-skeleton {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(223, 235, 235, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #9EA1D4;
+}
+
+/* User Profile Menu */
+.user-profile-menu {
+  position: relative;
+}
+
+.user-profile-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 10px 4px 4px;
+  background: rgba(223, 235, 235, 0.5);
+  border: 1px solid rgba(158, 161, 212, 0.35);
+  border-radius: 999px;
+  color: var(--text-main);
+  font-family: inherit;
+  font-size: 0.84rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.user-profile-btn:hover {
+  background: #DFEBEB;
+  border-color: #9EA1D4;
+}
+
+.user-avatar-img {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1.5px solid #FFFFFF;
+}
+
+.user-avatar-fallback {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #FD8A8A, #9EA1D4);
+  color: #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.user-display-name {
+  max-width: 110px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dropdown-arrow {
+  transition: transform 0.2s ease;
+  color: var(--text-muted);
+}
+
+.dropdown-arrow.open {
+  transform: rotate(180deg);
+}
+
+/* User Popover Menu */
+.user-dropdown-popover {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 240px;
+  background: #FFFFFF;
+  border: 1px solid var(--border-subtle);
+  border-radius: 16px;
+  box-shadow: 0 12px 32px rgba(45, 55, 72, 0.12);
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 100;
+  animation: popoverFadeIn 0.2s ease;
+}
+
+@keyframes popoverFadeIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.user-dropdown-header {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 4px 6px;
+}
+
+.user-dropdown-header strong {
+  font-size: 0.92rem;
+  color: #2D3748;
+}
+
+.user-dropdown-header small {
+  font-size: 0.78rem;
+  color: var(--text-dim);
+  word-break: break-all;
+}
+
+.user-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #0D9488;
+  background: rgba(168, 209, 209, 0.35);
+  padding: 2px 8px;
+  border-radius: 999px;
+  width: fit-content;
+  margin-top: 4px;
+}
+
+.user-dropdown-divider {
+  height: 1px;
+  background: var(--border-subtle);
+  margin: 4px 0;
+}
+
+.dropdown-action-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 10px;
+  border: none;
+  border-radius: 10px;
+  font-family: inherit;
+  font-size: 0.84rem;
+  font-weight: 600;
+  cursor: pointer;
+  background: transparent;
+  color: var(--text-main);
+  text-align: left;
+  transition: all 0.15s ease;
+}
+
+.dropdown-action-btn:hover {
+  background: rgba(223, 235, 235, 0.6);
+}
+
+.dropdown-action-btn.sync-action {
+  color: #0D9488;
+}
+
+.dropdown-action-btn.logout-action {
+  color: #E53E3E;
+}
+
+.dropdown-action-btn.logout-action:hover {
+  background: rgba(255, 203, 203, 0.4);
+}
+
+/* Modal Konfirmasi Sinkronisasi (Slide 11) */
+.sync-prompt-modal {
+  max-width: 500px;
+  padding: 28px;
+  background: #FFFFFF;
+  border-radius: 20px;
+  box-shadow: 0 16px 40px rgba(45, 55, 72, 0.18);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  border: 1.5px solid var(--border-subtle);
+}
+
+.prompt-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.prompt-header h3 {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #2D3748;
+  margin: 0;
+}
+
+.prompt-desc {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.prompt-user-card {
+  padding: 10px 14px;
+  background: rgba(223, 235, 235, 0.5);
+  border: 1px solid rgba(158, 161, 212, 0.35);
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.prompt-user-card strong {
+  font-size: 0.95rem;
+  color: #2D3748;
+}
+
+.prompt-user-card span {
+  font-size: 0.82rem;
+  color: var(--text-dim);
+}
+
+.prompt-detail-card {
+  padding: 12px 14px;
+  background: #FFFFFF;
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.prompt-detail-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.86rem;
+}
+
+.prompt-detail-row span {
+  color: var(--text-dim);
+}
+
+.prompt-detail-row strong {
+  color: #2D3748;
+}
+
+.prompt-detail-row code {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  background: rgba(223, 235, 235, 0.6);
+  padding: 2px 6px;
+  border-radius: 6px;
+}
+
+.prompt-note {
+  font-size: 0.8rem;
+  color: #718096;
+  line-height: 1.45;
+  margin: 0;
+  background: rgba(241, 247, 181, 0.4);
+  padding: 8px 12px;
+  border-radius: 10px;
+  border-left: 3px solid #D97706;
+}
+
+.prompt-error-alert {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: rgba(255, 203, 203, 0.5);
+  border: 1px solid #FD8A8A;
+  border-radius: 10px;
+  color: #E53E3E;
+  font-size: 0.84rem;
+}
+
+.prompt-actions-row {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+.btn-prompt-cancel {
+  padding: 10px 16px;
+  background: #FFFFFF;
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  color: var(--text-muted);
+  font-family: inherit;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-prompt-cancel:hover {
+  background: #DFEBEB;
+  color: #2D3748;
+}
+
+.btn-prompt-confirm {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  background: #FD8A8A;
+  border: none;
+  border-radius: 12px;
+  color: #FFFFFF;
+  font-family: inherit;
+  font-size: 0.88rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(253, 138, 138, 0.35);
+  transition: all 0.2s ease;
+}
+
+.btn-prompt-confirm:hover:not(:disabled) {
+  background: #fc7474;
+  transform: translateY(-1px);
+}
+
+.btn-prompt-confirm:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.spin {
+  animation: spinAnim 1s linear infinite;
+}
+
+@keyframes spinAnim {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.mobile-auth-wrapper {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+
