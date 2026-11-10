@@ -1,4 +1,7 @@
 import React, { useState, useEffect } from 'react'
+import { onAuthStateChanged } from 'firebase/auth'
+import { auth } from './lib/firebase'
+import LoginPage from './components/LoginPage'
 import Navbar from './components/Navbar'
 import HeroSection from './components/HeroSection'
 import TopicCards from './components/TopicCards'
@@ -7,7 +10,7 @@ import SearchBar from './components/SearchBar'
 import FeaturesSection from './components/FeaturesSection'
 import KuisLajuReaksi from './components/KuisLajuReaksi'
 import { resetQuizStore } from './lib/localStore'
-import { FlaskConical, Sparkles } from 'lucide-react'
+import { FlaskConical, Sparkles, Loader2 } from 'lucide-react'
 import { MODULES_DATA } from './data/modulesData'
 import './App.css'
 
@@ -17,6 +20,34 @@ const STORAGE_QUIZ_KEY = 'kimiaku-kuis'
 const STORAGE_POE_KEY = 'kimiaku-poe'
 
 export default function App() {
+  // State Autentikasi Firebase (Gatekeeper)
+  const [user, setUser] = useState(null)
+  const [authLoading, setAuthLoading] = useState(() => Boolean(auth))
+
+  // 1. Pantau status sesi login pengguna dengan onAuthStateChanged dari Firebase Auth
+  useEffect(() => {
+    if (!auth) return
+
+    const unsubscribe = onAuthStateChanged(
+      auth,
+      (currentUser) => {
+        setUser(currentUser)
+        setAuthLoading(false)
+      },
+      (error) => {
+        console.warn('Error onAuthStateChanged:', error)
+        setUser(null)
+        setAuthLoading(false)
+      }
+    )
+
+    return () => {
+      if (typeof unsubscribe === 'function') {
+        unsubscribe()
+      }
+    }
+  }, [])
+
   // 1. Progres Modul Selesai
   const [completedTopics, setCompletedTopics] = useState(() => {
     try {
@@ -27,7 +58,7 @@ export default function App() {
     }
   })
 
-  // 2. Skor Kuis Anonim
+  // 2. Skor Kuis Anonim / Lokal
   const [quizScores, setQuizScores] = useState(() => {
     try {
       const saved = localStorage.getItem(STORAGE_QUIZ_KEY)
@@ -111,7 +142,7 @@ export default function App() {
     })
   }
 
-  // Handler reset semua data progres anonim
+  // Handler reset semua data progres
   const handleResetProgress = () => {
     if (window.confirm('Apakah Anda yakin ingin mengatur ulang semua progres belajar, simulasi POE, dan skor kuis?')) {
       setCompletedTopics([])
@@ -162,12 +193,47 @@ export default function App() {
     }
   }
 
+  // 1. Tampilan Loading saat awal memeriksa status sesi login
+  if (authLoading) {
+    return (
+      <div className="gatekeeper-loading">
+        <div className="gatekeeper-loading-card">
+          <div className="brand-logo-wrap pulse">
+            <FlaskConical size={30} />
+          </div>
+          <div className="loading-text-row">
+            <Loader2 size={18} className="spin text-secondary" />
+            <span>Memeriksa sesi login KimiaKu...</span>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // 2. GATEKEEPER: Jika pengguna BELUM login (!user), kembalikan LoginPage secara penuh
+  if (!user) {
+    return (
+      <LoginPage
+        onGuestLogin={() => {
+          setUser({
+            uid: 'guest-' + Date.now(),
+            displayName: 'Tamu',
+            email: null,
+            isAnonymous: true
+          })
+        }}
+      />
+    )
+  }
+
+  // 3. Jika pengguna SUDAH login (user), tampilkan seluruh komponen aplikasi utama
   const activeModule = MODULES_DATA.find((m) => m.id === activeModuleId)
 
   return (
     <div className="app-shell">
       {/* 1. Header / Navbar dengan Navigasi Langsung Semua Modul, Kuis Diagnostik & Pencarian */}
       <Navbar
+        user={user}
         completedTopics={completedTopics}
         totalTopics={MODULES_DATA.length}
         quizScores={quizScores}
@@ -250,7 +316,7 @@ export default function App() {
           <div className="footer-meta">
             <div className="footer-badge">
               <Sparkles size={14} />
-              <span>React + Vite • 100% Bebas Akun & Anonim • Sesuai PRD.md & AGENTS.md</span>
+              <span>React + Vite • Autentikasi Google Cloud • Media Pembelajaran Kimia Fase F</span>
             </div>
             <div className="footer-copyright">
               © 2026 KimiaKu. Semua materi disusun untuk kepentingan edukasi sains kelas XI Fase F.

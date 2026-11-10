@@ -4,7 +4,9 @@ import {
   GoogleAuthProvider,
   signInWithPopup,
   signOut,
-  onAuthStateChanged
+  onAuthStateChanged,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword
 } from 'firebase/auth'
 import { getFirestore } from 'firebase/firestore'
 
@@ -41,6 +43,26 @@ export const db = getFirestore(app)
  */
 export async function loginWithGoogle() {
   return await signInWithPopup(auth, googleProvider)
+}
+
+/**
+ * Login menggunakan Email dan Password
+ * @param {string} email
+ * @param {string} password
+ * @returns {Promise<import('firebase/auth').UserCredential>}
+ */
+export async function loginWithEmail(email, password) {
+  return await signInWithEmailAndPassword(auth, email, password)
+}
+
+/**
+ * Pendaftaran Akun Baru menggunakan Email dan Password
+ * @param {string} email
+ * @param {string} password
+ * @returns {Promise<import('firebase/auth').UserCredential>}
+ */
+export async function registerWithEmail(email, password) {
+  return await createUserWithEmailAndPassword(auth, email, password)
 }
 
 /**
