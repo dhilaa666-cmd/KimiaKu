@@ -9,6 +9,7 @@ import {
   HelpCircle
 } from 'lucide-react'
 import { MODULES_DATA } from '../data/modulesData'
+import GoogleAuthButton from './GoogleAuthButton'
 
 export default function Navbar({
   completedTopics = [],
@@ -164,6 +165,9 @@ export default function Navbar({
             <span className="search-kbd-pill">Cari</span>
           </button>
 
+          {/* Tombol Login Google & Status Sinkronisasi Local-First */}
+          <GoogleAuthButton />
+
           {/* Indikator Progres Anonim (Sesuai AGENTS.md kunci awalan kimiaku-) */}
           <div className="progress-pill" title="Progres belajar & kuis disimpan anonim di peramban Anda">
             <div className="progress-info">
@@ -230,6 +234,10 @@ export default function Navbar({
               <HelpCircle size={16} style={{ marginRight: '8px', verticalAlign: 'middle' }} />
               <span>Kuis Diagnostik Bab 3 (5 Soal)</span>
             </button>
+
+            <div className="mobile-auth-wrapper">
+              <GoogleAuthButton />
+            </div>
 
             <div className="mobile-section-divider">Modul Laju Reaksi (Akses Langsung):</div>
             {MODULES_DATA.map((mod) => (

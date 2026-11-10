@@ -18,6 +18,8 @@ import {
   saveQuizResult,
   resetQuizStore
 } from '../lib/localStore'
+import { auth } from '../lib/firebase'
+import { syncQuizToFirestore } from '../utils/storage'
 
 export default function KuisLajuReaksi({ onBack, onCompleteScore }) {
   const soalList = kuisDiagnostik || []
@@ -58,7 +60,14 @@ export default function KuisLajuReaksi({ onBack, onCompleteScore }) {
     setShowConfirmSubmit(false)
 
     // Simpan ke localStorage sesuai kontrak DATABASE.md
-    saveQuizResult({ answers, score: finalScore })
+    const saved = saveQuizResult({ answers, score: finalScore })
+
+    // Sinkronkan ke Firestore jika siswa sudah login Google (Idempoten)
+    if (auth?.currentUser) {
+      syncQuizToFirestore(auth.currentUser, saved).catch((err) => {
+        console.warn('Gagal sinkronisasi otomatis kuis:', err)
+      })
+    }
 
     // Panggil callback skor jika ada
     if (onCompleteScore) {
