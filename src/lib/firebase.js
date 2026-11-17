@@ -8,7 +8,9 @@ import {
   updateProfile,
   signInAnonymously,
   signOut,
-  onAuthStateChanged
+  onAuthStateChanged,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword
 } from 'firebase/auth'
 import { getFirestore } from 'firebase/firestore'
 
