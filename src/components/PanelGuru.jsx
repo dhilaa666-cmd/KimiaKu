@@ -12,11 +12,13 @@ import {
   Atom,
   Sparkles,
   CheckCheck,
-  MessageSquare
+  MessageSquare,
+  ShieldAlert
 } from 'lucide-react'
 import { getStoredQuizData, getAllStoredPoeSubmissions } from '../utils/storage'
 import { kuisDiagnostik } from '../data/lajuReaksiData'
 import { MODULES_DATA } from '../data/modulesData'
+import { checkIsTeacher } from '../lib/authConfig'
 
 export default function PanelGuru({ onBackToDashboard, currentUser, isGuest }) {
   const [activeTab, setActiveTab] = useState('quiz') // 'quiz' | 'poe'
@@ -45,6 +47,31 @@ export default function PanelGuru({ onBackToDashboard, currentUser, isGuest }) {
     null
 
   const currentModuleInfo = MODULES_DATA.find((m) => m.id === (currentPoeRecord?.moduleId || selectedPoeModuleId))
+
+  const isTeacher = checkIsTeacher(currentUser)
+
+  if (!isTeacher) {
+    return (
+      <div className="isolated-page-view access-denied-view">
+        <div className="access-denied-card">
+          <div className="access-denied-icon-wrap">
+            <ShieldAlert size={36} color="#E11D48" />
+          </div>
+          <h2 className="access-denied-title">Akses Ditolak: Khusus Guru</h2>
+          <p className="access-denied-desc">
+            Halaman Panel Guru ini hanya dapat diakses oleh akun Guru resmi KimiaKu yang terdaftar.
+          </p>
+          <button
+            type="button"
+            className="btn-access-denied-back"
+            onClick={onBackToDashboard}
+          >
+            Kembali ke Beranda
+          </button>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="panel-guru-container">

@@ -8,8 +8,8 @@ import {
   User
 } from 'lucide-react'
 
-export default function BottomNav({ currentView, onNavigate }) {
-  const navItems = [
+export default function BottomNav({ currentView, onNavigate, isTeacher = false }) {
+  const allNavItems = [
     {
       id: 'dashboard',
       label: 'Home',
@@ -28,7 +28,8 @@ export default function BottomNav({ currentView, onNavigate }) {
     {
       id: 'guru',
       label: 'Guru',
-      icon: GraduationCap
+      icon: GraduationCap,
+      teacherOnly: true
     },
     {
       id: 'referensi',
@@ -41,6 +42,9 @@ export default function BottomNav({ currentView, onNavigate }) {
       icon: User
     }
   ]
+
+  // Filter: Sembunyikan Panel Guru di layar mobile jika bukan Guru
+  const navItems = allNavItems.filter((item) => !item.teacherOnly || isTeacher)
 
   return (
     <nav className="mobile-bottom-nav-bar block md:hidden" aria-label="Navigasi Bawah Layar Mobile">

@@ -11,7 +11,8 @@ import ReferensiSection from './components/ReferensiSection'
 import LoginPage from './components/LoginPage'
 import { subscribeToAuth } from './lib/firebase'
 import { resetQuizStore } from './lib/localStore'
-import { FlaskConical } from 'lucide-react'
+import { checkIsTeacher } from './lib/authConfig'
+import { FlaskConical, ShieldAlert } from 'lucide-react'
 import { MODULES_DATA } from './data/modulesData'
 import './App.css'
 
@@ -67,6 +68,12 @@ export default function App() {
   const [activeModuleId, setActiveModuleId] = useState(null)
   const [activeModuleTab, setActiveModuleTab] = useState('materi') // 'materi' | 'simulasi' | 'kuis'
   const [isSearchOpen, setIsSearchOpen] = useState(false)
+
+  // Role-Based Access Control (RBAC): Evaluasi role Guru berbasis whitelist email
+  const isTeacher = checkIsTeacher(currentUser)
+
+  // Route Guard: Jika pengguna bukan guru, rute 'guru' otomatis diarahkan ke 'dashboard'
+  const activeView = (currentView === 'guru' && !isTeacher) ? 'dashboard' : currentView
 
   // 0. Listener Autentikasi Firebase secara otomatis
   useEffect(() => {
@@ -163,6 +170,18 @@ export default function App() {
   // Handler Navigasi Halaman Mandiri (Single-Page Isolation)
   const handleNavigate = (viewId) => {
     const target = viewId === 'home' ? 'dashboard' : viewId
+
+    // Route Guard RBAC: Akses ke Panel Guru dibatasi hanya untuk akun Guru resmi
+    if (target === 'guru' || target === 'panel-guru') {
+      if (!isTeacher) {
+        alert('Akses Ditolak: Halaman Panel Guru khusus untuk akun Guru resmi KimiaKu.')
+        setCurrentView('dashboard')
+        setActiveModuleId(null)
+        window.scrollTo({ top: 0, behavior: 'instant' })
+        return
+      }
+    }
+
     setCurrentView(target)
     setActiveModuleId(null)
     window.scrollTo({ top: 0, behavior: 'instant' })
@@ -255,7 +274,7 @@ export default function App() {
   return (
     <>
       <ResponsiveLayout
-        currentView={currentView}
+        currentView={activeView}
         onNavigate={handleNavigate}
         currentUser={currentUser}
         isGuest={isGuest}
@@ -265,9 +284,10 @@ export default function App() {
         quizScores={quizScores}
         onResetProgress={handleResetProgress}
         onOpenSearch={() => setIsSearchOpen(true)}
+        isTeacher={isTeacher}
       >
         {/* Render HANYA SATU komponen aktif di dalam <main> (Single-Page Isolation) */}
-        {currentView === 'modul' ? (
+        {activeView === 'modul' ? (
           activeModule ? (
             <ModuleDetailPage
               module={activeModule}
@@ -306,22 +326,43 @@ export default function App() {
               />
             </div>
           )
-        ) : currentView === 'kuis' ? (
+        ) : activeView === 'kuis' ? (
           <div className="isolated-page-view kuis-page-view">
             <KuisLajuReaksi
               onBack={() => handleNavigate('dashboard')}
               onCompleteScore={(score) => handleSaveQuizScore('faktor-laju', score)}
             />
           </div>
-        ) : currentView === 'guru' ? (
-          <div className="isolated-page-view guru-page-view">
-            <PanelGuru
-              onBackToDashboard={() => handleNavigate('dashboard')}
-              currentUser={currentUser}
-              isGuest={isGuest}
-            />
-          </div>
-        ) : currentView === 'referensi' ? (
+        ) : activeView === 'guru' ? (
+          isTeacher ? (
+            <div className="isolated-page-view guru-page-view">
+              <PanelGuru
+                onBackToDashboard={() => handleNavigate('dashboard')}
+                currentUser={currentUser}
+                isGuest={isGuest}
+              />
+            </div>
+          ) : (
+            <div className="isolated-page-view access-denied-view">
+              <div className="access-denied-card">
+                <div className="access-denied-icon-wrap">
+                  <ShieldAlert size={36} color="#E11D48" />
+                </div>
+                <h2 className="access-denied-title">Akses Ditolak: Khusus Guru</h2>
+                <p className="access-denied-desc">
+                  Halaman Panel Guru ini hanya dapat diakses oleh akun Guru resmi KimiaKu yang terdaftar.
+                </p>
+                <button
+                  type="button"
+                  className="btn-access-denied-back"
+                  onClick={() => handleNavigate('dashboard')}
+                >
+                  Kembali ke Beranda
+                </button>
+              </div>
+            </div>
+          )
+        ) : activeView === 'referensi' ? (
           <div className="isolated-page-view referensi-page-view">
             <ReferensiSection />
           </div>

@@ -9,6 +9,7 @@ import {
   FlaskConical,
   Sparkles
 } from 'lucide-react'
+import { checkIsTeacher } from '../lib/authConfig'
 
 export default function Sidebar({
   currentView,
@@ -17,8 +18,10 @@ export default function Sidebar({
   isGuest,
   onLogout,
   completedTopicsCount = 0,
-  totalTopicsCount = 3
+  totalTopicsCount = 3,
+  isTeacher
 }) {
+  const verifiedTeacher = typeof isTeacher === 'boolean' ? isTeacher : checkIsTeacher(currentUser)
   const percent = Math.round((completedTopicsCount / totalTopicsCount) * 100)
   const displayName =
     currentUser?.displayName ||
@@ -26,7 +29,7 @@ export default function Sidebar({
     (isGuest ? 'Siswa Tamu' : 'Siswa')
   const email = currentUser?.email || 'Mode Tamu Lokal'
 
-  const menuItems = [
+  const allMenuItems = [
     {
       id: 'dashboard',
       label: 'Dashboard / Beranda',
@@ -49,7 +52,8 @@ export default function Sidebar({
       id: 'guru',
       label: 'Panel Guru',
       sublabel: 'Hasil & Evaluasi Kelas',
-      icon: GraduationCap
+      icon: GraduationCap,
+      teacherOnly: true
     },
     {
       id: 'referensi',
@@ -58,6 +62,9 @@ export default function Sidebar({
       icon: Bookmark
     }
   ]
+
+  // Filter: Sembunyikan Panel Guru jika bukan Guru
+  const menuItems = allMenuItems.filter((item) => !item.teacherOnly || verifiedTeacher)
 
   return (
     <aside className="app-sidebar hidden md:flex" aria-label="Sidebar Navigasi Desktop">
@@ -131,7 +138,12 @@ export default function Sidebar({
             </div>
           )}
           <div className="sidebar-user-details">
-            <strong className="sidebar-user-name">{displayName}</strong>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <strong className="sidebar-user-name">{displayName}</strong>
+              {verifiedTeacher && (
+                <span className="sidebar-role-badge-teacher">Guru</span>
+              )}
+            </div>
             <small className="sidebar-user-email">{email}</small>
           </div>
         </div>

@@ -8730,6 +8730,96 @@ button.badge-chip.clickable:hover {
   margin: 0;
 }
 
+/* ========================================================
+   ROLE-BASED ACCESS CONTROL (RBAC) & ACCESS DENIED UI
+   ======================================================== */
+.sidebar-role-badge-teacher {
+  font-size: 0.65rem;
+  font-weight: 800;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: #FFF1F2;
+  color: #E11D48;
+  border: 1px solid rgba(225, 29, 72, 0.3);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  display: inline-block;
+}
+
+.access-denied-view {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 55vh;
+  padding: 20px;
+}
+
+.access-denied-card {
+  max-width: 480px;
+  width: 100%;
+  margin: 40px auto;
+  padding: 38px 28px;
+  background: #FFFFFF;
+  border: 1.5px solid var(--border-subtle);
+  border-radius: 20px;
+  box-shadow: 0 10px 30px rgba(45, 55, 72, 0.06);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.access-denied-icon-wrap {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: #FFF1F2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 6px;
+  border: 1px solid rgba(244, 63, 94, 0.2);
+}
+
+.access-denied-title {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: #2D3748;
+  margin: 0;
+}
+
+.access-denied-desc {
+  font-size: 0.88rem;
+  color: var(--text-muted);
+  line-height: 1.6;
+  margin: 0;
+}
+
+.btn-access-denied-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 24px;
+  background: #FD8A8A;
+  color: #FFFFFF;
+  border: none;
+  border-radius: 12px;
+  font-family: inherit;
+  font-size: 0.88rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(253, 138, 138, 0.35);
+  transition: all 0.2s ease;
+  margin-top: 10px;
+}
+
+.btn-access-denied-back:hover {
+  background: #fc7474;
+  transform: translateY(-2px);
+}
+
+
 
 
 

@@ -12,6 +12,7 @@ import {
 import Sidebar from './Sidebar'
 import BottomNav from './BottomNav'
 import GoogleAuthButton from './GoogleAuthButton'
+import { checkIsTeacher } from '../lib/authConfig'
 
 export default function ResponsiveLayout({
   children,
@@ -24,9 +25,11 @@ export default function ResponsiveLayout({
   totalTopicsCount = 3,
   quizScores = {},
   onResetProgress,
-  onOpenSearch
+  onOpenSearch,
+  isTeacher
 }) {
   const [mobileProfileOpen, setMobileProfileOpen] = useState(false)
+  const verifiedTeacher = typeof isTeacher === 'boolean' ? isTeacher : checkIsTeacher(currentUser)
 
   const percent = Math.round((completedTopicsCount / totalTopicsCount) * 100)
   const totalQuizDone = Object.keys(quizScores).length
@@ -58,6 +61,7 @@ export default function ResponsiveLayout({
         onLogout={onLogout}
         completedTopicsCount={completedTopicsCount}
         totalTopicsCount={totalTopicsCount}
+        isTeacher={verifiedTeacher}
       />
 
       {/* ========================================================
@@ -201,7 +205,11 @@ export default function ResponsiveLayout({
           3. TAMPILAN MOBILE: FLOATING BOTTOM NAVIGATION BAR (< 768px)
           Menggunakan Tailwind responsive classes 'block md:hidden'
           ======================================================== */}
-      <BottomNav currentView={currentView} onNavigate={handleNavClick} />
+      <BottomNav
+        currentView={currentView}
+        onNavigate={handleNavClick}
+        isTeacher={verifiedTeacher}
+      />
 
       {/* MODAL PROFIL PENGGUNA UNTUK MOBILE HP */}
       {mobileProfileOpen && (
@@ -222,7 +230,12 @@ export default function ResponsiveLayout({
                   </div>
                 )}
                 <div>
-                  <h3 className="sheet-user-name">{displayName}</h3>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <h3 className="sheet-user-name">{displayName}</h3>
+                    {verifiedTeacher && (
+                      <span className="sidebar-role-badge-teacher">Guru</span>
+                    )}
+                  </div>
                   <small className="sheet-user-email">
                     {currentUser?.email || (isGuest ? 'Mode Tamu (Data Lokal)' : 'Siswa')}
                   </small>
