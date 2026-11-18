@@ -22,34 +22,6 @@ const STORAGE_QUIZ_KEY = 'kimiaku-kuis'
 const STORAGE_POE_KEY = 'kimiaku-poe'
 
 export default function App() {
-  // State Autentikasi Firebase (Gatekeeper)
-  const [user, setUser] = useState(null)
-  const [authLoading, setAuthLoading] = useState(() => Boolean(auth))
-
-  // 1. Pantau status sesi login pengguna dengan onAuthStateChanged dari Firebase Auth
-  useEffect(() => {
-    if (!auth) return
-
-    const unsubscribe = onAuthStateChanged(
-      auth,
-      (currentUser) => {
-        setUser(currentUser)
-        setAuthLoading(false)
-      },
-      (error) => {
-        console.warn('Error onAuthStateChanged:', error)
-        setUser(null)
-        setAuthLoading(false)
-      }
-    )
-
-    return () => {
-      if (typeof unsubscribe === 'function') {
-        unsubscribe()
-      }
-    }
-  }, [])
-
   // 1. Progres Modul Selesai
   const [completedTopics, setCompletedTopics] = useState(() => {
     try {
@@ -256,40 +228,6 @@ export default function App() {
     handleNavigate('modul')
   }
 
-  // 1. Tampilan Loading saat awal memeriksa status sesi login
-  if (authLoading) {
-    return (
-      <div className="gatekeeper-loading">
-        <div className="gatekeeper-loading-card">
-          <div className="brand-logo-wrap pulse">
-            <FlaskConical size={30} />
-          </div>
-          <div className="loading-text-row">
-            <Loader2 size={18} className="spin text-secondary" />
-            <span>Memeriksa sesi login KimiaKu...</span>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
-  // 2. GATEKEEPER: Jika pengguna BELUM login (!user), kembalikan LoginPage secara penuh
-  if (!user) {
-    return (
-      <LoginPage
-        onGuestLogin={() => {
-          setUser({
-            uid: 'guest-' + Date.now(),
-            displayName: 'Tamu',
-            email: null,
-            isAnonymous: true
-          })
-        }}
-      />
-    )
-  }
-
-  // 3. Jika pengguna SUDAH login (user), tampilkan seluruh komponen aplikasi utama
   const activeModule = MODULES_DATA.find((m) => m.id === activeModuleId)
 
   // ========================================================
@@ -429,7 +367,7 @@ export default function App() {
             <ReferensiSection />
           </div>
         ) : (
-          /* Dashboard / Beranda: Tampilkan HANYA hero section, ucapan selamat datang, dan ikhtisar singkat. Hapus daftar modul/kuis dari halaman ini. */
+          /* Dashboard / Beranda */
           <div className="isolated-page-view dashboard-page-view">
             <HeroSection
               onStartLearning={handleStartLearning}
