@@ -1,0 +1,56 @@
+{
+  "report": {
+    "loginPage": {
+      "status": true,
+      "message": "Halaman login berhasil dimuat dengan form lengkap (Google, Email/Password, dan Masuk sebagai Tamu)."
+    },
+    "spotlightOnboardingFirstTime": {
+      "status": true,
+      "message": "Spotlight Onboarding otomatis muncul saat pertama kali masuk ke aplikasi."
+    },
+    "spotlightOnboardingDismissal": {
+      "status": true,
+      "message": "Panduan berhasil ditutup saat menekan tombol \"Selesai\"."
+    },
+    "spotlightOnboardingReloadPersistence": {
+      "status": true,
+      "message": "Onboarding tersimpan di localStorage dan tidak muncul berulang saat refresh."
+    },
+    "spotlightOnboardingFooterReopen": {
+      "status": true,
+      "message": "Onboarding berhasil dibuka kembali dari tombol footer (kembali ke \"1. Eksplorasi Modul POE\")."
+    },
+    "poeModuleMateri": {
+      "status": true,
+      "message": "Detail Modul \"Faktor-Faktor Laju Reaksi\" berhasil terbuka dengan materi makroskopis dan sub-mikroskopis."
+    },
+    "poeModulePredict": {
+      "status": true,
+      "message": "Sintaks Predict aktif dengan opsi hipotesis awal dan penyimpanan draft."
+    },
+    "poeModuleObserveSimulation": {
+      "status": true,
+      "message": "Simulasi partikulat pada tab Observe berhasil dirender dengan canvas interaktif dan kontrol parameter."
+    },
+    "poeModuleExplain": {
+      "status": true,
+      "message": "Sintaks Explain aktif untuk refleksi dan pemantapan konsep."
+    },
+    "kuisDisplay": {
+      "status": true,
+      "message": "Halaman Kuis Diagnostik Bab 3 berhasil dibuka dengan 5 butir soal."
+    },
+    "kuisInteractionAndSubmit": {
+      "status": true,
+      "message": "Kuis berhasil diselesaikan, dikirim, dan dihitung nilainya secara otomatis (Skor: 40/100) lengkap dengan pembahasan ilmiah."
+    },
+    "runtimeStability": {
+      "status": true,
+      "message": "Tidak ada Uncaught JavaScript Error atau Crash pada aplikasi."
+    }
+  },
+  "consoleErrors": [
+    "Failed to load resource: the server responded with a status of 400 ()"
+  ],
+  "uncaughtErrors": []
+}
