@@ -1,0 +1,253 @@
+/* =========================================================
+   INTERACTIVE SPOTLIGHT TOUR (COACH MARKS) & FOOTER MANUAL
+   ========================================================= */
+.spotlight-tour-layer {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    pointer-events: auto;
+}
+
+.spotlight-fallback-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.72);
+}
+
+.spotlight-focus-box {
+    position: fixed;
+    border-radius: 12px;
+    box-shadow:
+        0 0 0 9999px rgba(15, 23, 42, 0.72),
+        0 0 0 3px #ffffff,
+        0 0 24px rgba(56, 189, 248, 0.65);
+    background: rgba(255, 255, 255, 0.08);
+    pointer-events: none;
+    transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.spotlight-tooltip-card {
+    position: fixed;
+    background: #ffffff;
+    color: #0f172a;
+    border-radius: 14px;
+    padding: 1.05rem 1.15rem;
+    box-shadow: 0 18px 40px rgba(15, 23, 42, 0.28);
+    border: 1px solid #e2e8f0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    transition: all 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+    z-index: 10000;
+}
+
+.spotlight-tooltip-card.arrow-left::before {
+    content: '';
+    position: absolute;
+    top: 22px;
+    left: -8px;
+    width: 15px;
+    height: 15px;
+    background: #ffffff;
+    border-left: 1px solid #e2e8f0;
+    border-bottom: 1px solid #e2e8f0;
+    transform: rotate(45deg);
+}
+
+.spotlight-tooltip-card.arrow-top::before {
+    content: '';
+    position: absolute;
+    top: -8px;
+    left: 50%;
+    margin-left: -7px;
+    width: 15px;
+    height: 15px;
+    background: #ffffff;
+    border-left: 1px solid #e2e8f0;
+    border-top: 1px solid #e2e8f0;
+    transform: rotate(45deg);
+}
+
+.spotlight-tooltip-card.arrow-bottom::before {
+    content: '';
+    position: absolute;
+    bottom: -8px;
+    left: 50%;
+    margin-left: -7px;
+    width: 15px;
+    height: 15px;
+    background: #ffffff;
+    border-right: 1px solid #e2e8f0;
+    border-bottom: 1px solid #e2e8f0;
+    transform: rotate(45deg);
+}
+
+.spotlight-tooltip-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.spotlight-step-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-size: 0.74rem;
+    font-weight: 700;
+    color: #0284c7;
+    background: #e0f2fe;
+    padding: 0.22rem 0.6rem;
+    border-radius: 999px;
+}
+
+.spotlight-close-btn {
+    background: transparent;
+    border: none;
+    color: #94a3b8;
+    cursor: pointer;
+    padding: 0.2rem;
+    border-radius: 6px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.spotlight-close-btn:hover {
+    background: #f1f5f9;
+    color: #0f172a;
+}
+
+.spotlight-tooltip-title {
+    font-size: 1rem;
+    font-weight: 800;
+    color: #0f172a;
+    margin: 0;
+    line-height: 1.3;
+}
+
+.spotlight-tooltip-desc {
+    font-size: 0.84rem;
+    color: #475569;
+    line-height: 1.52;
+    margin: 0;
+}
+
+.spotlight-tooltip-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 0.35rem;
+    padding-top: 0.6rem;
+    border-top: 1px solid #f1f5f9;
+}
+
+.spotlight-skip-btn {
+    background: transparent;
+    border: none;
+    color: #64748b;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 0.3rem 0.2rem;
+}
+
+.spotlight-skip-btn:hover {
+    color: #0f172a;
+    text-decoration: underline;
+}
+
+.spotlight-btn-group {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.spotlight-prev-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.2rem;
+    padding: 0.38rem 0.68rem;
+    border-radius: 8px;
+    border: 1px solid #cbd5e1;
+    background: #ffffff;
+    color: #334155;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.spotlight-prev-btn:hover {
+    background: #f8fafc;
+}
+
+.spotlight-next-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.4rem 0.85rem;
+    border-radius: 8px;
+    border: none;
+    background: #0284c7;
+    color: #ffffff;
+    font-size: 0.8rem;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 3px 10px rgba(2, 132, 199, 0.28);
+}
+
+.spotlight-next-btn:hover {
+    background: #0369a1;
+}
+
+/* Footer Panduan Manual di Bawah Halaman */
+.kimiaku-manual-guide-footer {
+    margin-top: 2.5rem;
+    padding: 1.15rem 1.4rem;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+}
+
+.manual-guide-content {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.manual-guide-text {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+}
+
+.manual-guide-text strong {
+    font-size: 0.95rem;
+    color: #0f172a;
+}
+
+.manual-guide-text span {
+    font-size: 0.84rem;
+    color: #64748b;
+}
+
+.btn-reopen-onboarding {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.6rem 1.05rem;
+    border-radius: 10px;
+    border: 1px solid #bae6fd;
+    background: #e0f2fe;
+    color: #0369a1;
+    font-size: 0.85rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.btn-reopen-onboarding:hover {
+    background: #bae6fd;
+    color: #0c4a6e;
+}

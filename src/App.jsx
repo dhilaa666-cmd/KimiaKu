@@ -9,20 +9,19 @@ import KuisLajuReaksi from './components/KuisLajuReaksi'
 import PanelGuru from './components/PanelGuru'
 import ReferensiSection from './components/ReferensiSection'
 import LoginPage from './components/LoginPage'
+import OnboardingModal from './components/OnboardingModal'
 import { subscribeToAuth } from './lib/firebase'
 import { resetQuizStore } from './lib/localStore'
 import { checkIsTeacher } from './lib/authConfig'
-import { FlaskConical, ShieldAlert } from 'lucide-react'
+import { FlaskConical, ShieldAlert, HelpCircle } from 'lucide-react'
 import { MODULES_DATA } from './data/modulesData'
 import './App.css'
 
-// Aturan AGENTS.md: Gunakan satu kunci awalan kimiaku- untuk localStorage
 const STORAGE_PROGRESS_KEY = 'kimiaku-progres'
 const STORAGE_QUIZ_KEY = 'kimiaku-kuis'
 const STORAGE_POE_KEY = 'kimiaku-poe'
 
 export default function App() {
-  // 1. Progres Modul Selesai
   const [completedTopics, setCompletedTopics] = useState(() => {
     try {
       const saved = localStorage.getItem(STORAGE_PROGRESS_KEY)
@@ -32,7 +31,6 @@ export default function App() {
     }
   })
 
-  // 2. Skor Kuis Anonim / Lokal
   const [quizScores, setQuizScores] = useState(() => {
     try {
       const saved = localStorage.getItem(STORAGE_QUIZ_KEY)
@@ -42,7 +40,6 @@ export default function App() {
     }
   })
 
-  // 3. Catatan Penyelesaian Simulasi POE
   const [poeRecords, setPoeRecords] = useState(() => {
     try {
       const saved = localStorage.getItem(STORAGE_POE_KEY)
@@ -52,7 +49,6 @@ export default function App() {
     }
   })
 
-  // State Autentikasi Pengguna & Gatekeeper Wajib Login
   const [currentUser, setCurrentUser] = useState(null)
   const [isAuthLoading, setIsAuthLoading] = useState(true)
   const [isGuest, setIsGuest] = useState(() => {
@@ -63,19 +59,15 @@ export default function App() {
     }
   })
 
-  // State Navigasi Halaman, Modal Pembelajaran & Pencarian
-  const [currentView, setCurrentView] = useState('dashboard') // 'dashboard' | 'modul' | 'kuis' | 'guru' | 'referensi'
+  const [currentView, setCurrentView] = useState('dashboard')
   const [activeModuleId, setActiveModuleId] = useState(null)
-  const [activeModuleTab, setActiveModuleTab] = useState('materi') // 'materi' | 'simulasi' | 'kuis'
+  const [activeModuleTab, setActiveModuleTab] = useState('materi')
   const [isSearchOpen, setIsSearchOpen] = useState(false)
+  const [isOnboardingOpen, setIsOnboardingOpen] = useState(false)
 
-  // Role-Based Access Control (RBAC): Evaluasi role Guru berbasis whitelist email
   const isTeacher = checkIsTeacher(currentUser)
-
-  // Route Guard: Jika pengguna bukan guru, rute 'guru' otomatis diarahkan ke 'dashboard'
   const activeView = (currentView === 'guru' && !isTeacher) ? 'dashboard' : currentView
 
-  // 0. Listener Autentikasi Firebase secara otomatis
   useEffect(() => {
     const unsubscribe = subscribeToAuth((user) => {
       setCurrentUser(user)
@@ -92,7 +84,34 @@ export default function App() {
     return () => unsubscribe()
   }, [])
 
-  // Sinkronisasi data ke localStorage secara otomatis
+  useEffect(() => {
+    if (isAuthLoading) return
+    if (!currentUser && !isGuest) return
+
+    const accountIdentifier = currentUser?.uid || currentUser?.email || 'guest'
+    const onboardingStorageKey = `kimiaku-onboarding-seen-${accountIdentifier}`
+
+    try {
+      const hasSeenOnboarding = localStorage.getItem(onboardingStorageKey)
+      if (!hasSeenOnboarding) {
+        setIsOnboardingOpen(true)
+      }
+    } catch (e) {
+      console.warn('Gagal membaca status onboarding:', e)
+    }
+  }, [currentUser, isGuest, isAuthLoading])
+
+  const handleCloseOnboarding = () => {
+    setIsOnboardingOpen(false)
+    const accountIdentifier = currentUser?.uid || currentUser?.email || 'guest'
+    const onboardingStorageKey = `kimiaku-onboarding-seen-${accountIdentifier}`
+    try {
+      localStorage.setItem(onboardingStorageKey, 'true')
+    } catch (e) {
+      console.warn('Gagal menyimpan status onboarding:', e)
+    }
+  }
+
   useEffect(() => {
     try {
       localStorage.setItem(STORAGE_PROGRESS_KEY, JSON.stringify(completedTopics))
@@ -117,7 +136,6 @@ export default function App() {
     }
   }, [poeRecords])
 
-  // Handler toggle status modul selesai
   const handleToggleTopic = (topicId) => {
     setCompletedTopics((prev) => {
       if (prev.includes(topicId)) {
@@ -128,19 +146,16 @@ export default function App() {
     })
   }
 
-  // Handler simpan skor kuis
   const handleSaveQuizScore = (moduleId, score) => {
     setQuizScores((prev) => ({
       ...prev,
       [moduleId]: Math.max(prev[moduleId] || 0, score)
     }))
-    // Jika skor kuis lulus (>= 60), otomatis tandai modul sebagai dipelajari
     if (score >= 60 && !completedTopics.includes(moduleId)) {
       setCompletedTopics((prev) => [...prev, moduleId])
     }
   }
 
-  // Handler selesaikan aktivitas POE
   const handleCompletePoe = (moduleId) => {
     setPoeRecords((prev) => {
       if (!prev.includes(moduleId)) {
@@ -150,13 +165,12 @@ export default function App() {
     })
   }
 
-  // Handler reset semua data progres
   const handleResetProgress = () => {
     if (window.confirm('Apakah Anda yakin ingin mengatur ulang semua progres belajar, simulasi POE, dan skor kuis?')) {
       setCompletedTopics([])
       setQuizScores({})
       setPoeRecords([])
-      resetQuizStore() // Reset database lokal kuis diagnostik
+      resetQuizStore()
       try {
         localStorage.removeItem(STORAGE_PROGRESS_KEY)
         localStorage.removeItem(STORAGE_QUIZ_KEY)
@@ -167,11 +181,9 @@ export default function App() {
     }
   }
 
-  // Handler Navigasi Halaman Mandiri (Single-Page Isolation)
   const handleNavigate = (viewId) => {
     const target = viewId === 'home' ? 'dashboard' : viewId
 
-    // Route Guard RBAC: Akses ke Panel Guru dibatasi hanya untuk akun Guru resmi
     if (target === 'guru' || target === 'panel-guru') {
       if (!isTeacher) {
         alert('Akses Ditolak: Halaman Panel Guru khusus untuk akun Guru resmi KimiaKu.')
@@ -217,6 +229,7 @@ export default function App() {
   const handleLogout = () => {
     setCurrentUser(null)
     setIsGuest(false)
+    setIsOnboardingOpen(false)
     try {
       localStorage.removeItem('kimiaku-guest-session')
     } catch (e) {
@@ -230,10 +243,6 @@ export default function App() {
 
   const activeModule = MODULES_DATA.find((m) => m.id === activeModuleId)
 
-  // ========================================================
-  // GATEKEEPER / PROTECTED ROUTE (Wajib Login)
-  // ========================================================
-  // 1. Loading state saat memeriksa sesi login awal
   if (isAuthLoading) {
     return (
       <div className="app-gatekeeper-loading">
@@ -245,7 +254,6 @@ export default function App() {
     )
   }
 
-  // 2. Jika belum login dan belum memilih mode tamu, kunci ke halaman LoginPage secara penuh
   if (!currentUser && !isGuest) {
     return (
       <LoginPage
@@ -270,7 +278,6 @@ export default function App() {
     )
   }
 
-  // 3. Pengguna telah login atau masuk sebagai tamu: Izinkan akses ke Layout Responsif & Aplikasi Utama
   return (
     <>
       <ResponsiveLayout
@@ -286,7 +293,6 @@ export default function App() {
         onOpenSearch={() => setIsSearchOpen(true)}
         isTeacher={isTeacher}
       >
-        {/* Render HANYA SATU komponen aktif di dalam <main> (Single-Page Isolation) */}
         {activeView === 'modul' ? (
           activeModule ? (
             <ModuleDetailPage
@@ -367,7 +373,6 @@ export default function App() {
             <ReferensiSection />
           </div>
         ) : (
-          /* Dashboard / Beranda */
           <div className="isolated-page-view dashboard-page-view">
             <HeroSection
               onStartLearning={handleStartLearning}
@@ -379,13 +384,34 @@ export default function App() {
             <FeaturesSection />
           </div>
         )}
+
+        <footer className="kimiaku-manual-guide-footer">
+          <div className="manual-guide-content">
+            <div className="manual-guide-text">
+              <strong>Petunjuk Penggunaan Website KimiaKu</strong>
+              <span>Butuh panduan navigasi modul POE, simulasi partikulat, atau kuis? Buka kembali kapan saja.</span>
+            </div>
+            <button
+              type="button"
+              className="btn-reopen-onboarding"
+              onClick={() => setIsOnboardingOpen(true)}
+            >
+              <HelpCircle size={16} />
+              <span>Lihat Petunjuk Penggunaan</span>
+            </button>
+          </div>
+        </footer>
       </ResponsiveLayout>
 
-      {/* 6. Fitur Pencarian Materi PRD.md */}
       <SearchBar
         isOpen={isSearchOpen}
         onClose={() => setIsSearchOpen(false)}
         onSelectModule={handleOpenModule}
+      />
+
+      <OnboardingModal
+        isOpen={isOnboardingOpen}
+        onClose={handleCloseOnboarding}
       />
     </>
   )
