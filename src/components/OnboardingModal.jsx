@@ -1,6 +1,7 @@
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { X, ChevronRight, ChevronLeft, CheckCircle2, Sparkles } from 'lucide-react'
 import './OnboardingModal.css'
+
 const TOUR_STEPS = [
     {
         selector: '.sidebar-nav-list .sidebar-nav-item:nth-of-type(2), .navbar-links .dropdown-toggle',
@@ -57,6 +58,8 @@ function findVisibleElement(selectorString) {
 export default function OnboardingModal({ isOpen, onClose }) {
     const [currentStep, setCurrentStep] = useState(0)
     const [targetRect, setTargetRect] = useState(null)
+    const previousActiveElementRef = useRef(null)
+    const modalCardRef = useRef(null)
 
     const updateSpotlightPosition = useCallback(() => {
         if (!isOpen) return
@@ -65,7 +68,6 @@ export default function OnboardingModal({ isOpen, onClose }) {
 
         if (targetEl) {
             targetEl.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' })
-            // Beri jeda singkat agar koordinat akurat setelah scroll selesai
             const rect = targetEl.getBoundingClientRect()
             const padding = 6
             setTargetRect({
@@ -79,11 +81,94 @@ export default function OnboardingModal({ isOpen, onClose }) {
         }
     }, [isOpen, currentStep])
 
+    // Pengelolaan fokus: simpan elemen fokus sebelumnya dan kembalikan saat ditutup (Temuan 03-10)
     useEffect(() => {
         if (isOpen) {
+            previousActiveElementRef.current = document.activeElement
             setCurrentStep(0)
+            const focusTimer = setTimeout(() => {
+                if (modalCardRef.current) {
+                    const firstFocusable = modalCardRef.current.querySelector(
+                        'button:not([disabled]), [tabindex]:not([tabindex="-1"])'
+                    )
+                    if (firstFocusable) {
+                        firstFocusable.focus()
+                    } else {
+                        modalCardRef.current.focus()
+                    }
+                }
+            }, 60)
+            return () => clearTimeout(focusTimer)
+        } else if (previousActiveElementRef.current && typeof previousActiveElementRef.current.focus === 'function') {
+            previousActiveElementRef.current.focus()
         }
     }, [isOpen])
+
+    // Keyboard event listener: Escape untuk menutup dan Tab focus trap (Temuan 03-10)
+    useEffect(() => {
+        if (!isOpen) return
+
+        const handleKeyDown = (e) => {
+            if (e.key === 'Escape') {
+                e.preventDefault()
+                onClose()
+                return
+            }
+
+            if (e.key === 'Tab') {
+                const card = modalCardRef.current
+                if (!card) return
+                const focusable = card.querySelectorAll(
+                    'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+                )
+                if (focusable.length === 0) return
+
+                const first = focusable[0]
+                const last = focusable[focusable.length - 1]
+
+                if (e.shiftKey && document.activeElement === first) {
+                    last.focus()
+                    e.preventDefault()
+                } else if (!e.shiftKey && document.activeElement === last) {
+                    first.focus()
+                    e.preventDefault()
+                }
+            }
+        }
+
+        window.addEventListener('keydown', handleKeyDown)
+        return () => window.removeEventListener('keydown', handleKeyDown)
+    }, [isOpen, onClose])
+
+    // Otomatis buka sidebar pada layar HP (< 768px) saat menyorot menu sidebar (Temuan 03-10)
+    useEffect(() => {
+        if (!isOpen) {
+            document.querySelector('.app-sidebar')?.classList.remove('tour-mobile-open')
+            document.body.classList.remove('tour-mobile-sidebar-open')
+            return
+        }
+
+        const step = TOUR_STEPS[currentStep]
+        const isSidebarStep = Boolean(step?.selector?.includes('.sidebar'))
+        const isMobile = window.innerWidth < 768
+        const sidebarEl = document.querySelector('.app-sidebar')
+
+        if (isMobile && isSidebarStep && sidebarEl) {
+            sidebarEl.classList.add('tour-mobile-open')
+            document.body.classList.add('tour-mobile-sidebar-open')
+        } else if (sidebarEl) {
+            sidebarEl.classList.remove('tour-mobile-open')
+            document.body.classList.remove('tour-mobile-sidebar-open')
+        }
+
+        const timer = setTimeout(updateSpotlightPosition, 160)
+
+        return () => {
+            clearTimeout(timer)
+            document.querySelector('.app-sidebar')?.classList.remove('tour-mobile-open')
+            document.body.classList.remove('tour-mobile-sidebar-open')
+        }
+    }, [isOpen, currentStep, updateSpotlightPosition])
 
     useEffect(() => {
         if (!isOpen) return
@@ -118,7 +203,7 @@ export default function OnboardingModal({ isOpen, onClose }) {
         }
     }
 
-    // Hitung posisi kartu tooltip & arah panah agar tidak terpotong tepi layar
+    // Hitung posisi kartu tooltip & panah rapi dan aman dari tepi layar (Temuan 03-10)
     const getTooltipStyleAndArrow = () => {
         if (!targetRect) {
             return {
@@ -133,13 +218,14 @@ export default function OnboardingModal({ isOpen, onClose }) {
 
         const viewportW = window.innerWidth
         const viewportH = window.innerHeight
-        const cardWidth = Math.min(340, viewportW - 32)
+        const isMobile = viewportW < 768
+        const cardWidth = Math.min(330, viewportW - 24)
         const estimatedCardHeight = 225
-        const gap = 14
+        const gap = 12
 
-        // 1. Jika di layar desktop dan ada ruang cukup di kanan elemen (misal Sidebar)
+        // 1. Desktop: Ruang cukup di kanan elemen (misal Sidebar)
         if (
-            viewportW >= 768 &&
+            !isMobile &&
             stepData.preferredPlacement === 'right' &&
             targetRect.left + targetRect.width + cardWidth + gap + 16 < viewportW
         ) {
@@ -157,18 +243,21 @@ export default function OnboardingModal({ isOpen, onClose }) {
             }
         }
 
-        // 2. Jika elemen berada di bawah layar (misal tombol footer) -> taruh tooltip di atasnya
+        // Hitung posisi horizontal yang selalu aman dari tepi layar
+        const leftPos = Math.max(
+            12,
+            Math.min(viewportW - cardWidth - 12, targetRect.left + (targetRect.width - cardWidth) / 2)
+        )
+
+        // 2. Elemen di bagian bawah layar atau preferredPlacement top -> tampil di atas elemen
         if (
             stepData.preferredPlacement === 'top' ||
             targetRect.top + targetRect.height + estimatedCardHeight + gap > viewportH
         ) {
-            const leftPos = Math.min(
-                Math.max(16, targetRect.left + targetRect.width / 2 - cardWidth / 2),
-                viewportW - cardWidth - 16
-            )
+            const bottomPos = Math.max(12, viewportH - targetRect.top + gap)
             return {
                 style: {
-                    bottom: `${Math.max(16, viewportH - targetRect.top + gap)}px`,
+                    bottom: `${bottomPos}px`,
                     left: `${leftPos}px`,
                     width: `${cardWidth}px`
                 },
@@ -176,14 +265,14 @@ export default function OnboardingModal({ isOpen, onClose }) {
             }
         }
 
-        // 3. Default: taruh tooltip tepat di bawah elemen dengan panah menunjuk ke atas
-        const leftPos = Math.min(
-            Math.max(16, targetRect.left + targetRect.width / 2 - cardWidth / 2),
-            viewportW - cardWidth - 16
+        // 3. Tampil di bawah elemen
+        const topPos = Math.max(
+            12,
+            Math.min(viewportH - estimatedCardHeight - 12, targetRect.top + targetRect.height + gap)
         )
         return {
             style: {
-                top: `${targetRect.top + targetRect.height + gap}px`,
+                top: `${topPos}px`,
                 left: `${leftPos}px`,
                 width: `${cardWidth}px`
             },
@@ -200,7 +289,7 @@ export default function OnboardingModal({ isOpen, onClose }) {
             aria-modal="true"
             aria-labelledby="spotlight-tour-title"
         >
-            {/* Backdrop gelap penuh jika elemen tidak ditemukan */}
+            {/* Backdrop gelap */}
             {!targetRect && <div className="spotlight-fallback-backdrop" onClick={onClose} />}
 
             {/* Kotak Sorotan Terang (Spotlight Cutout) */}
@@ -217,7 +306,12 @@ export default function OnboardingModal({ isOpen, onClose }) {
             )}
 
             {/* Kotak Tooltip Petunjuk dengan Panah */}
-            <div className={`spotlight-tooltip-card ${arrowClass}`} style={tooltipStyle}>
+            <div
+                ref={modalCardRef}
+                tabIndex={-1}
+                className={`spotlight-tooltip-card ${arrowClass}`}
+                style={tooltipStyle}
+            >
                 <div className="spotlight-tooltip-header">
                     <span className="spotlight-step-pill">
                         <Sparkles size={12} />
@@ -229,8 +323,8 @@ export default function OnboardingModal({ isOpen, onClose }) {
                         type="button"
                         className="spotlight-close-btn"
                         onClick={onClose}
-                        title="Tutup panduan"
-                        aria-label="Tutup panduan"
+                        title="Tutup panduan (Esc)"
+                        aria-label="Tutup panduan (Esc)"
                     >
                         <X size={15} />
                     </button>

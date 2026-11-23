@@ -21,7 +21,9 @@ export default function ModuleModal({
   onSaveQuizScore,
   savedQuizScore = null,
   onCompletePoe,
-  isPoeCompleted = false
+  isPoeCompleted = false,
+  currentUser = null,
+  isGuest = false
 }) {
   const [activeTab, setActiveTab] = useState(initialTab) // 'materi' | 'simulasi' | 'kuis'
 
@@ -261,6 +263,8 @@ export default function ModuleModal({
               {module.id === 'faktor-laju' ? (
                 <KuisLajuReaksi
                   onCompleteScore={(score) => onSaveQuizScore(module.id, score)}
+                  currentUser={currentUser}
+                  isGuest={isGuest}
                 />
               ) : (
                 <QuizModal

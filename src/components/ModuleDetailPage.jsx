@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import {
   ArrowLeft,
   BookOpen,
@@ -20,6 +20,7 @@ import GlossaryModal from './GlossaryModal'
 export default function ModuleDetailPage({
   module,
   initialTab = 'materi',
+  onTabChange,
   onBack,
   isCompleted = false,
   onToggleComplete,
@@ -34,10 +35,20 @@ export default function ModuleDetailPage({
   const [activeTab, setActiveTab] = useState(initialTab) // 'materi' | 'simulasi' | 'lab-video' | 'mindmap'
   const [isGlossaryOpen, setIsGlossaryOpen] = useState(false)
 
+  // Sinkronisasi tab jika initialTab berubah dari hash URL / parent state
+  useEffect(() => {
+    if (initialTab && initialTab !== activeTab) {
+      setActiveTab(initialTab)
+    }
+  }, [initialTab])
+
   if (!module) return null
 
   const handleTabChange = (tabId) => {
     setActiveTab(tabId)
+    if (onTabChange) {
+      onTabChange(tabId)
+    }
     window.scrollTo({ top: 0, behavior: 'instant' })
     const scrollContainer = document.querySelector('.main-content-scroll-area')
     if (scrollContainer) scrollContainer.scrollTo({ top: 0, behavior: 'instant' })

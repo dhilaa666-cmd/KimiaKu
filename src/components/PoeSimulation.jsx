@@ -12,7 +12,8 @@ import {
   Zap,
   Gauge,
   Activity,
-  ArrowRight
+  ArrowRight,
+  Info
 } from 'lucide-react'
 
 export default function PoeSimulation({ module, onCompletePoe, isCompleted = false }) {
@@ -68,8 +69,10 @@ export default function PoeSimulation({ module, onCompletePoe, isCompleted = fal
 
     // Generate particles based on concentration and surface area
     const particleCount = Math.round(concentration * 20)
-    const speedMultiplier = (temperature / 25) * (useCatalyst ? 1.4 : 1.0)
-    const effectiveThreshold = useCatalyst ? 0.35 : 0.65 // Lower barrier with catalyst
+    // Temuan 03-05: Kelajuan partikel hanya dipengaruhi oleh suhu (katalis tidak mengubah kelajuan gerak partikel)
+    const speedMultiplier = temperature / 25
+    // Katalis menurunkan ambang batas energi aktivasi (Ea), sehingga memperbesar peluang tumbukan efektif
+    const effectiveThreshold = useCatalyst ? 0.35 : 0.65
 
     // Create particles
     const particles = []
@@ -535,6 +538,17 @@ export default function PoeSimulation({ module, onCompletePoe, isCompleted = fal
                   <div className="progress-track">
                     <div className="progress-fill" style={{ width: `${reactionProgressM1}%` }}></div>
                   </div>
+                </div>
+
+                {/* Catatan Batasan Model Visual 2D (Temuan 03-05) */}
+                <div className="sim-model-limitations-note">
+                  <div className="note-header-row">
+                    <Info size={15} className="text-teal" />
+                    <strong>Catatan Batasan Model Visual (Prinsip Katalis):</strong>
+                  </div>
+                  <p>
+                    Katalis <strong>tidak mengubah atau mempercepat kelajuan gerak partikel</strong> (kelajuan rata-rata dan energi kinetik partikel murni dipengaruhi oleh suhu). Katalis bekerja dengan menyediakan mekanisme reaksi alternatif berenergi aktivasi (Ea) lebih rendah, sehingga memperbesar peluang terjadinya tumbukan efektif antarpartikel.
+                  </p>
                 </div>
               </div>
             </div>

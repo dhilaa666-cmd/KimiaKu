@@ -9427,3 +9427,658 @@ button.badge-chip.clickable:hover {
     font-size: 1.6rem;
   }
 }
+
+/* ========================================================
+   TEMUAN 03-01: STATUS KONFIGURASI FIREBASE RAMAH
+   ======================================================== */
+.firebase-status-banner {
+  background: linear-gradient(135deg, rgba(240, 253, 250, 0.95), rgba(204, 251, 241, 0.7));
+  border: 1.5px solid rgba(45, 212, 191, 0.55);
+  border-radius: 14px;
+  padding: 12px 18px;
+  margin: 16px 20px 8px 20px;
+  box-shadow: 0 4px 14px rgba(13, 148, 136, 0.08);
+  animation: slideDownFade 0.3s ease-out;
+}
+
+.firebase-status-banner-inner {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.firebase-status-icon-box {
+  background: #CCFBF1;
+  color: #0F766E;
+  padding: 8px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.firebase-status-text-wrap {
+  flex: 1;
+}
+
+.firebase-status-title-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 4px;
+}
+
+.firebase-status-badge {
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #0F766E;
+  background: rgba(13, 148, 136, 0.15);
+  padding: 2px 8px;
+  border-radius: 6px;
+}
+
+.firebase-status-subtitle {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #134E4A;
+}
+
+.firebase-status-desc {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #334155;
+  line-height: 1.45;
+}
+
+.firebase-status-desc code {
+  background: rgba(255, 255, 255, 0.8);
+  padding: 2px 6px;
+  border-radius: 4px;
+  border: 1px solid rgba(45, 212, 191, 0.3);
+  font-family: monospace;
+  font-size: 0.82rem;
+  color: #0F766E;
+}
+
+.btn-dismiss-firebase-banner {
+  background: transparent;
+  border: none;
+  color: #64748B;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.btn-dismiss-firebase-banner:hover {
+  background: rgba(0, 0, 0, 0.06);
+  color: #1E293B;
+}
+
+/* Notice Card di Halaman Login */
+.login-config-notice-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  background: #F0FDFA;
+  border: 1px solid #99F6E4;
+  border-radius: 12px;
+  padding: 12px 14px;
+  margin-bottom: 16px;
+}
+
+.login-config-notice-card .notice-icon-box {
+  background: #CCFBF1;
+  color: #0F766E;
+  padding: 6px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.login-config-notice-card .notice-text-content {
+  font-size: 0.83rem;
+  color: #1E293B;
+  line-height: 1.4;
+}
+
+.login-config-notice-card .notice-text-content strong {
+  display: block;
+  color: #0F766E;
+  margin-bottom: 2px;
+}
+
+.login-config-notice-card .notice-text-content code {
+  background: #E6FFFA;
+  padding: 1px 4px;
+  border-radius: 4px;
+  border: 1px solid #B2F5EA;
+  font-size: 0.8rem;
+}
+
+/* ========================================================
+   TEMUAN 03-09: PERINGATAN PENYIMPANAN KUIS LOKAL (QUOTA)
+   ======================================================== */
+.kuis-storage-warning-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  background: #FFFBEB;
+  border: 1.5px solid #FCD34D;
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin-bottom: 18px;
+  box-shadow: 0 4px 12px rgba(217, 119, 6, 0.1);
+  animation: slideDownFade 0.25s ease-out;
+}
+
+.kuis-storage-warning-banner .warning-icon-wrap {
+  background: #FEF3C7;
+  color: #D97706;
+  padding: 8px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.kuis-storage-warning-banner .warning-text-content {
+  flex: 1;
+}
+
+.kuis-storage-warning-banner .warning-title {
+  display: block;
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #92400E;
+  margin-bottom: 4px;
+}
+
+.kuis-storage-warning-banner .warning-desc {
+  font-size: 0.85rem;
+  color: #78350F;
+  line-height: 1.45;
+  margin: 0 0 4px 0;
+}
+
+.kuis-storage-warning-banner .warning-note {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #059669;
+  display: block;
+}
+
+.kuis-storage-warning-banner .btn-dismiss-warning {
+  background: transparent;
+  border: none;
+  color: #92400E;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.kuis-storage-warning-banner .btn-dismiss-warning:hover {
+  background: rgba(217, 119, 6, 0.15);
+}
+
+@keyframes slideDownFade {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ========================================================
+   TEMUAN 03-03 & 03-06: STYLING PANEL GURU & POE RETRY / CLUSTER
+   ======================================================== */
+.topbar-right-cluster {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.guru-source-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  border: 1px solid var(--border-subtle);
+  background: #FFFFFF;
+}
+
+.guru-source-pill.cloud {
+  background: rgba(168, 209, 209, 0.25);
+  border-color: rgba(13, 148, 136, 0.4);
+  color: #0D9488;
+}
+
+.guru-source-pill.local {
+  background: rgba(254, 243, 199, 0.6);
+  border-color: rgba(217, 119, 6, 0.4);
+  color: #B45309;
+}
+
+.btn-guru-refresh {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: #FFFFFF;
+  border: 1.5px solid var(--border-subtle);
+  border-radius: 10px;
+  font-family: inherit;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text-main);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-guru-refresh:hover:not(:disabled) {
+  background: #DFEBEB;
+  border-color: #9EA1D4;
+}
+
+.btn-guru-refresh:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-open-detail.active {
+  background: #0D9488;
+  color: #FFFFFF;
+  border-color: #0D9488;
+}
+
+.submission-row.selected-row {
+  background: rgba(168, 209, 209, 0.12);
+}
+
+.submitted-local-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #D97706;
+}
+
+.submitted-failed-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #E11D48;
+}
+
+.sync-badge.gagal {
+  background: rgba(255, 203, 203, 0.6);
+  color: #E11D48;
+}
+
+.sync-badge.lokal {
+  background: rgba(241, 247, 181, 0.6);
+  color: #92400E;
+}
+
+.poe-submit-actions-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.poe-sync-alert-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 18px;
+  background: #FFFBEB;
+  border: 1.5px solid #FDE68A;
+  border-radius: 12px;
+  animation: slideDownFade 0.25s ease-out;
+}
+
+.poe-sync-alert-banner .alert-content {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.poe-sync-alert-banner .alert-text-block strong {
+  display: block;
+  font-size: 0.88rem;
+  font-weight: 800;
+  color: #92400E;
+  margin-bottom: 2px;
+}
+
+.poe-sync-alert-banner .alert-text-block p {
+  font-size: 0.8rem;
+  color: #78350F;
+  margin: 0;
+}
+
+.btn-poe-retry-inline {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  background: #D97706;
+  border: none;
+  border-radius: 8px;
+  color: #FFFFFF;
+  font-family: inherit;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+}
+
+.btn-poe-retry-inline:hover:not(:disabled) {
+  background: #B45309;
+}
+
+.btn-poe-retry-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 18px;
+  background: #FFFBEB;
+  border: 1.5px solid #D97706;
+  border-radius: 12px;
+  color: #B45309;
+  font-family: inherit;
+  font-size: 0.88rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-poe-retry-action:hover:not(:disabled) {
+  background: #FEF3C7;
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ========================================================
+   TEMUAN 03-04 & 03-05: RIWAYAT KUIS & CATATAN BATASAN MODEL
+   ======================================================== */
+.btn-history-kuis-top {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  background: #FFFFFF;
+  border: 1.5px solid var(--border-subtle);
+  border-radius: 10px;
+  font-family: inherit;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text-main);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-history-kuis-top:hover {
+  background: #DFEBEB;
+  border-color: #9EA1D4;
+}
+
+.btn-history-kuis-bottom {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 22px;
+  background: #FFFFFF;
+  border: 1.5px solid var(--border-subtle);
+  border-radius: 14px;
+  font-family: inherit;
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--text-main);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-history-kuis-bottom:hover {
+  background: #DFEBEB;
+  border-color: #9EA1D4;
+}
+
+.modal-history-box {
+  max-width: 580px;
+  width: 90%;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  padding: 24px;
+  border-radius: 20px;
+}
+
+.history-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.history-modal-header .title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.history-title {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--text-main);
+  margin: 0;
+}
+
+.history-subtitle {
+  font-size: 0.82rem;
+  color: var(--text-dim);
+  line-height: 1.45;
+  margin: 0 0 16px 0;
+}
+
+.history-list-wrapper {
+  overflow-y: auto;
+  max-height: 380px;
+  padding-right: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.history-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 36px 16px;
+  background: #F8FAFC;
+  border-radius: 14px;
+  border: 1.5px dashed var(--border-subtle);
+}
+
+.history-empty-state h4 {
+  font-size: 0.98rem;
+  font-weight: 700;
+  color: var(--text-main);
+  margin: 10px 0 4px 0;
+}
+
+.history-empty-state p {
+  font-size: 0.82rem;
+  color: var(--text-dim);
+  margin: 0;
+}
+
+.history-cards-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.history-item-card {
+  padding: 14px 16px;
+  background: #FFFFFF;
+  border: 1.5px solid var(--border-subtle);
+  border-radius: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition: all 0.2s ease;
+}
+
+.history-item-card:hover {
+  border-color: #9EA1D4;
+  box-shadow: 0 2px 8px rgba(45, 55, 72, 0.04);
+}
+
+.item-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.attempt-badge {
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: var(--text-main);
+}
+
+.history-score-pill {
+  font-size: 0.78rem;
+  font-weight: 800;
+  padding: 3px 10px;
+  border-radius: 999px;
+}
+
+.history-score-pill.pass {
+  background: rgba(168, 209, 209, 0.4);
+  color: #0D9488;
+}
+
+.history-score-pill.fail {
+  background: rgba(255, 203, 203, 0.5);
+  color: #E11D48;
+}
+
+.item-details-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  font-size: 0.76rem;
+  color: var(--text-dim);
+}
+
+.item-detail {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.item-footer-code {
+  font-size: 0.7rem;
+  color: var(--text-dim);
+}
+
+.item-footer-code code {
+  background: #F1F5F9;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: monospace;
+}
+
+.history-modal-footer {
+  margin-top: 16px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.btn-history-close {
+  padding: 8px 18px;
+  background: #DFEBEB;
+  border: none;
+  border-radius: 10px;
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text-main);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-history-close:hover {
+  background: #CCDEDE;
+}
+
+/* Catatan Batasan Model Visual 2D (Temuan 03-05) */
+.sim-model-limitations-note {
+  margin-top: 12px;
+  padding: 12px 16px;
+  background: #F0FDFA;
+  border: 1px solid #99F6E4;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.sim-model-limitations-note .note-header-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8rem;
+  color: #0D9488;
+}
+
+.sim-model-limitations-note p {
+  font-size: 0.76rem;
+  line-height: 1.45;
+  color: #134E4A;
+  margin: 0;
+}

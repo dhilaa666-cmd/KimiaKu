@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import {
   GraduationCap,
   Users,
@@ -13,42 +13,65 @@ import {
   Sparkles,
   CheckCheck,
   MessageSquare,
-  ShieldAlert
+  ShieldAlert,
+  RotateCw,
+  Cloud,
+  Database
 } from 'lucide-react'
-import { getStoredQuizData, getAllStoredPoeSubmissions } from '../utils/storage'
+import {
+  fetchClassQuizSubmissions,
+  fetchClassPoeSubmissions,
+  getStudentIdentity,
+  SYNC_STATUS
+} from '../utils/storage.js'
 import { kuisDiagnostik } from '../data/lajuReaksiData'
 import { MODULES_DATA } from '../data/modulesData'
 import { checkIsTeacher } from '../lib/authConfig'
 
+export { getStudentIdentity }
+
 export default function PanelGuru({ onBackToDashboard, currentUser, isGuest }) {
   const [activeTab, setActiveTab] = useState('quiz') // 'quiz' | 'poe'
-  const [quizData] = useState(() => getStoredQuizData())
-  const [poeSubmissions] = useState(() => getAllStoredPoeSubmissions())
-  const [selectedAttempt, setSelectedAttempt] = useState(() => {
-    const data = getStoredQuizData()
-    return data && data.isSubmitted ? data : null
-  })
-  const [selectedPoeModuleId, setSelectedPoeModuleId] = useState('faktor-laju')
-
-  const studentName =
-    currentUser?.displayName ||
-    currentUser?.email?.split('@')[0] ||
-    (isGuest ? 'Siswa Tamu (Lokal)' : 'Siswa Uji')
-  const studentEmail = currentUser?.email || 'sesi-lokal@kimiaku.edu'
-
-  const poeKeys = Object.keys(poeSubmissions)
-  const submittedPoeList = poeKeys
-    .map((k) => poeSubmissions[k])
-    .filter((rec) => rec && (rec.isSubmitted || rec.predictText || rec.explainText))
-
-  const currentPoeRecord =
-    poeSubmissions[selectedPoeModuleId] ||
-    submittedPoeList[0] ||
-    null
-
-  const currentModuleInfo = MODULES_DATA.find((m) => m.id === (currentPoeRecord?.moduleId || selectedPoeModuleId))
+  const [quizList, setQuizList] = useState([])
+  const [poeList, setPoeList] = useState([])
+  const [dataSource, setDataSource] = useState('local') // 'cloud' | 'local'
+  const [isLoading, setIsLoading] = useState(true)
+  const [selectedQuizAttemptId, setSelectedQuizAttemptId] = useState(null)
+  const [selectedPoeIndex, setSelectedPoeIndex] = useState(0)
 
   const isTeacher = checkIsTeacher(currentUser)
+
+  // Memuat data rekaman kelas dari Firestore (dengan fallback ke penyimpanan lokal) (Temuan 03-06)
+  const loadClassSubmissions = async () => {
+    setIsLoading(true)
+    try {
+      const [quizRes, poeRes] = await Promise.all([
+        fetchClassQuizSubmissions(),
+        fetchClassPoeSubmissions()
+      ])
+
+      const qSubmissions = quizRes?.submissions || []
+      const pSubmissions = poeRes?.submissions || []
+
+      setQuizList(qSubmissions)
+      setPoeList(pSubmissions)
+      setDataSource(quizRes?.source === 'cloud' || poeRes?.source === 'cloud' ? 'cloud' : 'local')
+
+      if (qSubmissions.length > 0 && !selectedQuizAttemptId) {
+        setSelectedQuizAttemptId(qSubmissions[0].id)
+      }
+    } catch (err) {
+      console.warn('Gagal memuat rekaman kelas pada Panel Guru:', err)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    if (isTeacher) {
+      loadClassSubmissions()
+    }
+  }, [isTeacher])
 
   if (!isTeacher) {
     return (
@@ -73,9 +96,31 @@ export default function PanelGuru({ onBackToDashboard, currentUser, isGuest }) {
     )
   }
 
+  // Hitung statistik kelas
+  const submittedQuizzes = quizList.filter((q) => q && (q.isSubmitted || typeof q.score === 'number'))
+  const submittedPoeList = poeList.filter(
+    (p) => p && (p.isSubmitted || Boolean(p.predictText) || Boolean(p.explainText))
+  )
+
+  const avgScore =
+    submittedQuizzes.length > 0
+      ? Math.round(
+          submittedQuizzes.reduce((acc, curr) => acc + (typeof curr.score === 'number' ? curr.score : 0), 0) /
+            submittedQuizzes.length
+        )
+      : null
+
+  const selectedAttempt =
+    quizList.find((q) => q.id === selectedQuizAttemptId) || quizList[0] || null
+
+  const currentPoeRecord = poeList[selectedPoeIndex] || poeList[0] || null
+  const currentModuleInfo = MODULES_DATA.find(
+    (m) => m.id === (currentPoeRecord?.moduleId || 'faktor-laju')
+  )
+
   return (
     <div className="panel-guru-container">
-      {/* Top Header */}
+      {/* Top Header Bar */}
       <div className="panel-guru-topbar">
         <button
           type="button"
@@ -87,9 +132,36 @@ export default function PanelGuru({ onBackToDashboard, currentUser, isGuest }) {
           <span>Kembali ke Beranda</span>
         </button>
 
-        <div className="panel-guru-badge">
-          <GraduationCap size={16} />
-          <span>Panel Evaluasi Guru (Aulia) • Pembelajaran Kimia Fase F</span>
+        <div className="topbar-right-cluster">
+          <div className={`guru-source-pill ${dataSource === 'cloud' ? 'cloud' : 'local'}`}>
+            {dataSource === 'cloud' ? (
+              <>
+                <Cloud size={14} className="text-emerald" />
+                <span>Data Cloud Firestore (Kelas)</span>
+              </>
+            ) : (
+              <>
+                <Database size={14} className="text-amber" />
+                <span>Penyimpanan Lokal (Fallback)</span>
+              </>
+            )}
+          </div>
+
+          <button
+            type="button"
+            className="btn-guru-refresh"
+            onClick={loadClassSubmissions}
+            disabled={isLoading}
+            title="Muat ulang hasil kiriman siswa"
+          >
+            <RotateCw size={14} className={isLoading ? 'spin' : ''} />
+            <span>{isLoading ? 'Memuat...' : 'Segarkan Data'}</span>
+          </button>
+
+          <div className="panel-guru-badge">
+            <GraduationCap size={16} />
+            <span>Panel Evaluasi Guru • Kimia Fase F</span>
+          </div>
         </div>
       </div>
 
@@ -102,22 +174,22 @@ export default function PanelGuru({ onBackToDashboard, currentUser, isGuest }) {
           </div>
           <h1 className="guru-hero-title">Evaluasi Hasil Kuis & Tugas Sintaks POE</h1>
           <p className="guru-hero-desc">
-            Pantau dan nilai pemahaman siswa secara komprehensif: mulai dari skor kuis diagnostik hingga penalaran ilmiah tertulis pada tahapan <strong>Predict</strong>, <strong>Observe</strong>, dan <strong>Explain</strong>.
+            Pantau dan periksa pemahaman siswa: mulai dari skor kuis diagnostik hingga penalaran ilmiah tertulis pada tahapan <strong>Predict</strong>, <strong>Observe</strong>, dan <strong>Explain</strong>.
           </p>
         </div>
 
         <div className="guru-hero-stats">
           <div className="guru-stat-box">
-            <span className="stat-num">{quizData?.isSubmitted ? '1' : '0'}</span>
-            <span className="stat-label">Kuis Selesai</span>
+            <span className="stat-num">{submittedQuizzes.length}</span>
+            <span className="stat-label">Kuis Masuk</span>
           </div>
           <div className="guru-stat-box">
             <span className="stat-num">{submittedPoeList.length}</span>
             <span className="stat-label">Tugas POE Masuk</span>
           </div>
           <div className="guru-stat-box">
-            <span className="stat-num">{quizData?.score !== null ? `${quizData.score}%` : '-'}</span>
-            <span className="stat-label">Skor Kuis Siswa</span>
+            <span className="stat-num">{avgScore !== null ? `${avgScore}%` : '-'}</span>
+            <span className="stat-label">Rata-rata Skor Kuis</span>
           </div>
         </div>
       </div>
@@ -130,7 +202,7 @@ export default function PanelGuru({ onBackToDashboard, currentUser, isGuest }) {
           onClick={() => setActiveTab('quiz')}
         >
           <FileText size={16} />
-          <span>1. Hasil Kuis Diagnostik (5 Soal)</span>
+          <span>1. Hasil Kuis Diagnostik ({submittedQuizzes.length})</span>
         </button>
 
         <button
@@ -153,82 +225,102 @@ export default function PanelGuru({ onBackToDashboard, currentUser, isGuest }) {
               <FileText size={18} className="text-coral" />
               <h2 className="section-title">Daftar Hasil Kuis Diagnostik Siswa</h2>
             </div>
-            <span className="header-tag">Versi Soal: {quizData?.questionVersion || 'v1'}</span>
+            <span className="header-tag">
+              {submittedQuizzes.length} Rekaman Ditemukan
+            </span>
           </div>
 
-          {quizData?.isSubmitted ? (
+          {submittedQuizzes.length > 0 ? (
             <div className="table-responsive-wrap">
               <table className="guru-submissions-table">
                 <thead>
                   <tr>
-                    <th>Nama / Alias Siswa</th>
+                    <th>Nama / Identitas Siswa</th>
                     <th>ID Percobaan</th>
                     <th>Aktivitas</th>
                     <th>Versi</th>
                     <th>Skor</th>
-                    <th>Waktu Selesai</th>
+                    <th>Waktu Pengerjaan</th>
                     <th>Status Server</th>
                     <th>Tindakan</th>
                   </tr>
                 </thead>
                 <tbody>
-                  <tr className="submission-row">
-                    <td>
-                      <div className="student-profile-cell">
-                        <div className="student-avatar-initial">
-                          {studentName[0].toUpperCase()}
-                        </div>
-                        <div className="student-info-col">
-                          <strong>{studentName}</strong>
-                          <small>{studentEmail}</small>
-                        </div>
-                      </div>
-                    </td>
-                    <td>
-                      <code className="attempt-code">{quizData.id}</code>
-                    </td>
-                    <td>
-                      <span className="activity-pill">Faktor Laju Reaksi</span>
-                    </td>
-                    <td>
-                      <span className="version-pill">v1</span>
-                    </td>
-                    <td>
-                      <span className={`score-pill ${quizData.score >= 60 ? 'pass' : 'fail'}`}>
-                        {quizData.score}%
-                      </span>
-                    </td>
-                    <td>
-                      <div className="time-cell">
-                        <Clock size={13} />
-                        <span>
-                          {quizData.completedAt
-                            ? new Date(quizData.completedAt).toLocaleTimeString('id-ID', {
-                                hour: '2-digit',
-                                minute: '2-digit'
-                              })
-                            : '-'}{' '}
-                          WIB
-                        </span>
-                      </div>
-                    </td>
-                    <td>
-                      <span
-                        className={`sync-indicator-pill ${quizData.syncStatus?.toLowerCase().replace(/\s+/g, '-')}`}
+                  {submittedQuizzes.map((quiz) => {
+                    const student = getStudentIdentity(quiz)
+                    const isSelected = selectedAttempt?.id === quiz.id
+
+                    return (
+                      <tr
+                        key={quiz.id}
+                        className={`submission-row ${isSelected ? 'selected-row' : ''}`}
                       >
-                        {quizData.syncStatus || 'Lokal'}
-                      </span>
-                    </td>
-                    <td>
-                      <button
-                        type="button"
-                        className="btn-open-detail"
-                        onClick={() => setSelectedAttempt(quizData)}
-                      >
-                        Buka Rincian
-                      </button>
-                    </td>
-                  </tr>
+                        <td>
+                          <div className="student-profile-cell">
+                            <div className="student-avatar-initial">
+                              {student.name[0] ? student.name[0].toUpperCase() : 'S'}
+                            </div>
+                            <div className="student-info-col">
+                              <strong>{student.name}</strong>
+                              <small>{student.email}</small>
+                            </div>
+                          </div>
+                        </td>
+                        <td>
+                          <code className="attempt-code">{quiz.id}</code>
+                        </td>
+                        <td>
+                          <span className="activity-pill">Faktor Laju Reaksi</span>
+                        </td>
+                        <td>
+                          <span className="version-pill">{quiz.questionVersion || 'v1'}</span>
+                        </td>
+                        <td>
+                          <span
+                            className={`score-pill ${
+                              typeof quiz.score === 'number' && quiz.score >= 60 ? 'pass' : 'fail'
+                            }`}
+                          >
+                            {typeof quiz.score === 'number' ? `${quiz.score}%` : '-'}
+                          </span>
+                        </td>
+                        <td>
+                          <div className="time-cell">
+                            <Clock size={13} />
+                            <span>
+                              {quiz.completedAt
+                                ? new Date(quiz.completedAt).toLocaleString('id-ID', {
+                                    dateStyle: 'short',
+                                    timeStyle: 'short'
+                                  })
+                                : '-'}{' '}
+                              WIB
+                            </span>
+                          </div>
+                        </td>
+                        <td>
+                          <span
+                            className={`sync-indicator-pill ${
+                              quiz.isFromCloud
+                                ? 'terkirim'
+                                : (quiz.syncStatus || 'lokal').toLowerCase().replace(/\s+/g, '-')
+                            }`}
+                          >
+                            {quiz.isFromCloud ? 'Terkirim (Cloud)' : (quiz.syncStatus || 'Lokal')}
+                          </span>
+                        </td>
+                        <td>
+                          <button
+                            type="button"
+                            className={`btn-open-detail ${isSelected ? 'active' : ''}`}
+                            onClick={() => setSelectedQuizAttemptId(quiz.id)}
+                          >
+                            {isSelected ? 'Sedang Ditinjau' : 'Buka Rincian'}
+                          </button>
+                        </td>
+                      </tr>
+                    )
+                  })}
                 </tbody>
               </table>
             </div>
@@ -237,19 +329,21 @@ export default function PanelGuru({ onBackToDashboard, currentUser, isGuest }) {
               <HelpCircle size={40} className="empty-icon text-muted" />
               <h3>Belum Ada Hasil Kuis yang Diserahkan</h3>
               <p>
-                Siswa belum menyelesaikan atau mengirimkan kuis diagnostik. Hasil kuis yang dikerjakan akan otomatis tercatat di panel ini beserta rincian analisis per butir.
+                Siswa belum menyelesaikan atau mengirimkan kuis diagnostik. Hasil kuis yang dikerjakan siswa akan otomatis tercatat di panel ini beserta rincian analisis per butir soal.
               </p>
             </div>
           )}
 
-          {/* Rincian Jawaban Per Butir Soal */}
-          {selectedAttempt && selectedAttempt.isSubmitted && (
+          {/* Rincian Jawaban Per Butir Soal untuk Siswa Terpilih */}
+          {selectedAttempt && (
             <div className="guru-quiz-detail-section">
               <div className="card-section-header">
                 <div className="header-title-row">
                   <Award size={18} className="text-coral" />
                   <h3 className="section-title">
-                    Rincian Analisis Jawaban: {studentName} ({selectedAttempt.score}%)
+                    Rincian Analisis Jawaban Siswa: {getStudentIdentity(selectedAttempt).name} (
+                    {typeof selectedAttempt.score === 'number' ? `${selectedAttempt.score}%` : 'Belum selesai'}
+                    )
                   </h3>
                 </div>
                 <span className="header-tag">ID: {selectedAttempt.id}</span>
@@ -290,7 +384,9 @@ export default function PanelGuru({ onBackToDashboard, currentUser, isGuest }) {
                         <div className="comp-row">
                           <span>Pilihan Siswa:</span>
                           <strong className={isCorrect ? 'text-emerald' : 'text-red'}>
-                            Opsi {studentChoice || 'Tidak Dijawab'}
+                            {studentChoice !== undefined && studentChoice !== null
+                              ? `Opsi ${studentChoice}`
+                              : 'Tidak Dijawab'}
                           </strong>
                         </div>
                         <div className="comp-row">
@@ -330,39 +426,34 @@ export default function PanelGuru({ onBackToDashboard, currentUser, isGuest }) {
               <Sparkles size={40} className="empty-icon text-muted" />
               <h3>Belum Ada Tugas POE yang Dikirimkan</h3>
               <p>
-                Siswa belum mengirimkan jawaban di formulir Predict – Observe – Explain pada halaman detail modul. Saat siswa menekan "Kirim Tugas POE ke Panel Guru", jawaban analisisnya akan langsung tampil di sini.
+                Siswa belum mengirimkan jawaban di formulir Predict – Observe – Explain. Saat siswa menyelesaikan tugas POE dan mengirimkannya, hasil analisis tertulisnya akan langsung tampil di sini.
               </p>
             </div>
           ) : (
             <div className="guru-poe-view-layout">
-              {/* Kolom Kiri: Pemilih Modul POE */}
+              {/* Kolom Kiri: Pemilih Tugas Siswa */}
               <div className="poe-submissions-sidebar">
-                <span className="sidebar-list-label">Daftar Modul POE Siswa:</span>
-                {MODULES_DATA.map((mod) => {
-                  const sub = poeSubmissions[mod.id]
-                  const hasSub = Boolean(sub && (sub.isSubmitted || sub.predictText))
-                  const isCurrent = (currentPoeRecord?.moduleId || selectedPoeModuleId) === mod.id
+                <span className="sidebar-list-label">Daftar Kiriman Tugas POE Siswa:</span>
+                {submittedPoeList.map((sub, idx) => {
+                  const student = getStudentIdentity(sub)
+                  const isCurrent = idx === selectedPoeIndex
+                  const modInfo = MODULES_DATA.find((m) => m.id === sub.moduleId)
 
                   return (
                     <button
-                      key={mod.id}
+                      key={`${sub.ownerId || 'guest'}_${sub.moduleId || idx}_${idx}`}
                       type="button"
-                      className={`poe-mod-selector-btn ${isCurrent ? 'active' : ''} ${hasSub ? 'submitted' : ''}`}
-                      onClick={() => setSelectedPoeModuleId(mod.id)}
+                      className={`poe-mod-selector-btn ${isCurrent ? 'active' : ''} submitted`}
+                      onClick={() => setSelectedPoeIndex(idx)}
                     >
                       <div className="selector-icon-col">
-                        {hasSub ? (
-                          <CheckCheck size={16} className="text-emerald" />
-                        ) : (
-                          <Clock size={16} className="text-muted" />
-                        )}
+                        <CheckCheck size={16} className="text-emerald" />
                       </div>
                       <div className="selector-info-col">
-                        <strong className="selector-mod-title">{mod.title}</strong>
+                        <strong className="selector-mod-title">{student.name}</strong>
+                        <small className="selector-mod-sub">{modInfo?.title || sub.moduleId}</small>
                         <small className="selector-status">
-                          {hasSub
-                            ? `Terkirim (${sub.syncStatus || 'Lokal'})`
-                            : 'Belum dikerjakan'}
+                          {sub.isFromCloud ? 'Cloud' : (sub.syncStatus || 'Lokal')}
                         </small>
                       </div>
                     </button>
@@ -370,7 +461,7 @@ export default function PanelGuru({ onBackToDashboard, currentUser, isGuest }) {
                 })}
               </div>
 
-              {/* Kolom Kanan: Rincian 3 Langkah POE Siswa */}
+              {/* Kolom Kanan: Rincian 3 Langkah POE Siswa Terpilih */}
               <div className="poe-submission-detail-pane">
                 {currentPoeRecord ? (
                   <div className="poe-review-card">
@@ -380,13 +471,18 @@ export default function PanelGuru({ onBackToDashboard, currentUser, isGuest }) {
                           {currentModuleInfo?.badge || 'Modul'}: {currentModuleInfo?.title}
                         </span>
                         <h3 className="review-student-name">
-                          Penyerahan Tugas oleh: <strong>{currentPoeRecord.alias || studentName}</strong>
+                          Penyerahan Tugas oleh: <strong>{getStudentIdentity(currentPoeRecord).name}</strong>
                         </h3>
                         <small className="review-meta-time">
-                          Waktu Kirim:{' '}
+                          Akun: <strong>{getStudentIdentity(currentPoeRecord).email}</strong> • Waktu Kirim:{' '}
                           {currentPoeRecord.submittedAt
                             ? new Date(currentPoeRecord.submittedAt).toLocaleString('id-ID')
-                            : 'Draf Lokal'} • Status Cloud: <strong>{currentPoeRecord.syncStatus}</strong>
+                            : 'Draf Lokal'} • Status:{' '}
+                          <strong>
+                            {currentPoeRecord.isFromCloud
+                              ? 'Terkirim (Cloud)'
+                              : (currentPoeRecord.syncStatus || 'Lokal')}
+                          </strong>
                         </small>
                       </div>
                       <div className="review-score-stamp">
@@ -438,16 +534,16 @@ export default function PanelGuru({ onBackToDashboard, currentUser, isGuest }) {
                     <div className="guru-feedback-editor-box">
                       <div className="feedback-header">
                         <MessageSquare size={16} className="text-coral" />
-                        <strong>Catatan Umpan Balik Guru (Aulia):</strong>
+                        <strong>Catatan Umpan Balik Evaluasi Guru:</strong>
                       </div>
                       <p className="feedback-hint">
-                        Penalaran ilmiah siswa menunjukkan kemampuan menghubungkan variabel manipulasi dengan Teori Tumbukan dan Energi Aktivasi secara runtut.
+                        Periksa penalaran ilmiah siswa terhadap Teori Tumbukan, Luas Permukaan Bidang Sentuh, Konsentrasi, Suhu, dan Katalis berdasarkan kriteria rubrik penilaian kurikulum.
                       </p>
                     </div>
                   </div>
                 ) : (
                   <div className="poe-no-data-box">
-                    <p>Pilih modul di sebelah kiri untuk melihat rincian jawaban POE siswa.</p>
+                    <p>Pilih siswa pada daftar di sebelah kiri untuk melihat rincian jawaban tugas POE.</p>
                   </div>
                 )}
               </div>

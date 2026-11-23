@@ -11,13 +11,17 @@ import {
   AlertCircle,
   Loader2,
   ArrowRight,
-  CheckCircle2
+  CheckCircle2,
+  HardDrive,
+  Info
 } from 'lucide-react'
 import {
   loginWithGoogle,
   loginWithEmail,
   registerWithEmail,
-  loginAsGuest
+  loginAsGuest,
+  isFirebaseConfigured,
+  getFirebaseConfigStatus
 } from '../lib/firebase'
 
 /**
@@ -70,6 +74,12 @@ export default function LoginPage({ onLoginSuccess, onContinueAsGuest }) {
   const handleGoogleSignIn = async () => {
     setErrorMsg(null)
     setSuccessMsg(null)
+
+    if (!isFirebaseConfigured) {
+      setErrorMsg('Fitur Login Google membutuhkan konfigurasi Firebase pada berkas .env. Silakan lanjutkan dengan Mode Tamu di bawah.')
+      return
+    }
+
     setGoogleLoading(true)
 
     try {
@@ -92,6 +102,11 @@ export default function LoginPage({ onLoginSuccess, onContinueAsGuest }) {
     e.preventDefault()
     setErrorMsg(null)
     setSuccessMsg(null)
+
+    if (!isFirebaseConfigured) {
+      setErrorMsg('Autentikasi akun online memerlukan konfigurasi Firebase (.env). Silakan gunakan opsi "Lanjutkan sebagai Tamu" di bawah untuk mencoba aplikasi.')
+      return
+    }
 
     if (!email.trim() || !password) {
       setErrorMsg('Harap lengkapi alamat email dan kata sandi Anda.')
@@ -207,6 +222,21 @@ export default function LoginPage({ onLoginSuccess, onContinueAsGuest }) {
                 : 'Buat akun untuk menyimpan hasil kuis dan progres belajar'}
             </p>
           </div>
+
+          {/* Temuan 03-01: Notifikasi Status Konfigurasi Firebase yang Ramah */}
+          {!isFirebaseConfigured && (
+            <div className="login-config-notice-card" role="status">
+              <div className="notice-icon-box">
+                <HardDrive size={18} className="text-teal" />
+              </div>
+              <div className="notice-text-content">
+                <strong>Mode Tamu Lokal Tersedia</strong>
+                <p>
+                  Konfigurasi Firebase belum terpasang pada berkas <code>.env</code>. Anda dapat langsung menggunakan seluruh modul dan kuis dengan menekan opsi <strong>"Lanjutkan sebagai Tamu"</strong> di bawah.
+                </p>
+              </div>
+            </div>
+          )}
 
           {/* Tombol Login Google Utama di Bagian Atas Form */}
           <button

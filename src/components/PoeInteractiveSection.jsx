@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import {
   HelpCircle,
   Eye,
@@ -8,7 +8,9 @@ import {
   ArrowLeft,
   Save,
   Send,
-  FileEdit
+  FileEdit,
+  RotateCw,
+  AlertCircle
 } from 'lucide-react'
 import {
   getStoredPoeData,
@@ -28,29 +30,102 @@ export default function PoeInteractiveSection({
   const [poeStep, setPoeStep] = useState('predict') // 'predict' | 'observe' | 'explain'
   const poeScenario = module.poeScenario
 
-  // State Input Form Siswa POE diinisialisasi langsung dari data tersimpan
+  const currentUid = currentUser?.uid || 'guest'
+
+  // State Input Form Siswa POE diinisialisasi langsung dari data tersimpan terisolasi per akun
   const [predictChoiceId, setPredictChoiceId] = useState(() => {
-    return getStoredPoeData(module.id)?.predictChoiceId || ''
+    return getStoredPoeData(module.id, currentUid)?.predictChoiceId || ''
   })
   const [predictText, setPredictText] = useState(() => {
-    return getStoredPoeData(module.id)?.predictText || ''
+    return getStoredPoeData(module.id, currentUid)?.predictText || ''
   })
   const [observeNotes, setObserveNotes] = useState(() => {
-    return getStoredPoeData(module.id)?.observeNotes || ''
+    return getStoredPoeData(module.id, currentUid)?.observeNotes || ''
   })
   const [explainText, setExplainText] = useState(() => {
-    return getStoredPoeData(module.id)?.explainText || ''
+    return getStoredPoeData(module.id, currentUid)?.explainText || ''
   })
 
   // State Status Pengiriman & Penyimpanan
   const [isSubmitted, setIsSubmitted] = useState(() => {
-    return Boolean(getStoredPoeData(module.id)?.isSubmitted)
+    return Boolean(getStoredPoeData(module.id, currentUid)?.isSubmitted)
   })
   const [syncStatus, setSyncStatus] = useState(() => {
-    return getStoredPoeData(module.id)?.syncStatus || SYNC_STATUS.LOCAL
+    return getStoredPoeData(module.id, currentUid)?.syncStatus || SYNC_STATUS.LOCAL
   })
   const [isSaving, setIsSaving] = useState(false)
   const [saveMessage, setSaveMessage] = useState('')
+
+  const debounceTimerRef = useRef(null)
+  const isInitialMount = useRef(true)
+
+  // Efek pergantian akun atau modul: muat ulang data terisolasi milik akun aktif
+  useEffect(() => {
+    const data = getStoredPoeData(module.id, currentUid)
+    setPredictChoiceId(data?.predictChoiceId || '')
+    setPredictText(data?.predictText || '')
+    setObserveNotes(data?.observeNotes || '')
+    setExplainText(data?.explainText || '')
+    setIsSubmitted(Boolean(data?.isSubmitted))
+    setSyncStatus(data?.syncStatus || SYNC_STATUS.LOCAL)
+    isInitialMount.current = true
+  }, [module.id, currentUid])
+
+  // Auto-save dengan debounce (600ms) saat siswa mengetik di formulir POE (Temuan 03-07)
+  useEffect(() => {
+    // Lewati saat initial mount atau setelah pergantian modul/akun
+    if (isInitialMount.current) {
+      isInitialMount.current = false
+      return
+    }
+
+    setIsSaving(true)
+    setSaveMessage('')
+
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current)
+    }
+
+    debounceTimerRef.current = setTimeout(() => {
+      const payload = {
+        moduleId: module.id,
+        predictChoiceId,
+        predictText,
+        observeNotes,
+        explainText
+      }
+      savePoeDraft(payload, currentUid)
+      setIsSaving(false)
+      setSaveMessage('Tersimpan')
+      setTimeout(() => {
+        setSaveMessage('')
+      }, 3000)
+    }, 600)
+
+    return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current)
+      }
+    }
+  }, [predictChoiceId, predictText, observeNotes, explainText, module.id, currentUid])
+
+  // Simpan segera jika tab di-refresh atau ditutup sebelum jeda debounce selesai (Temuan 03-07)
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      savePoeDraft(
+        {
+          moduleId: module.id,
+          predictChoiceId,
+          predictText,
+          observeNotes,
+          explainText
+        },
+        currentUid
+      )
+    }
+    window.addEventListener('beforeunload', handleBeforeUnload)
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload)
+  }, [module.id, predictChoiceId, predictText, observeNotes, explainText, currentUid])
 
   // Auto-save draft locally on change
   const handleSaveDraft = (overrides = {}) => {
@@ -62,12 +137,12 @@ export default function PoeInteractiveSection({
       observeNotes: overrides.observeNotes ?? observeNotes,
       explainText: overrides.explainText ?? explainText
     }
-    savePoeDraft(payload)
+    savePoeDraft(payload, currentUid)
     setTimeout(() => {
       setIsSaving(false)
-      setSaveMessage('Draf tersimpan di peramban')
+      setSaveMessage('Tersimpan')
       setTimeout(() => setSaveMessage(''), 2500)
-    }, 200)
+    }, 150)
   }
 
   // Go to step with scroll reset
@@ -78,6 +153,8 @@ export default function PoeInteractiveSection({
     const scrollContainer = document.querySelector('.main-content-scroll-area')
     if (scrollContainer) scrollContainer.scrollTo({ top: 0, behavior: 'instant' })
   }
+
+  const [isRetrying, setIsRetrying] = useState(false)
 
   // Submit final POE answers to teacher (local + Firestore)
   const handleSubmitPoe = async () => {
@@ -100,36 +177,72 @@ export default function PoeInteractiveSection({
       explainText,
       currentUser,
       isGuest
-    })
+    }, currentUid)
 
     setIsSubmitted(true)
-    setSyncStatus(saved.syncStatus)
+    let finalStatus = saved.syncStatus
+    setSyncStatus(finalStatus)
 
     // Mark completion in parent
     if (onCompletePoe) {
       onCompletePoe(module.id)
     }
 
-    // Attempt sync to Firestore if user logged in
-    if (currentUser && currentUser.uid) {
-      setSyncStatus(SYNC_STATUS.PENDING)
-      try {
-        const res = await syncPoeToFirestore(currentUser, module.id)
-        if (res.success) {
-          setSyncStatus(SYNC_STATUS.SYNCED)
-        } else {
-          setSyncStatus(SYNC_STATUS.FAILED)
-        }
-      } catch (err) {
-        console.warn('Sync POE failed:', err)
-        setSyncStatus(SYNC_STATUS.FAILED)
-      }
-    } else {
+    // Jika pengguna dalam mode tamu atau belum login
+    if (isGuest || !currentUser?.uid) {
       setSyncStatus(SYNC_STATUS.LOCAL)
+      setIsSaving(false)
+      alert('Tersimpan secara lokal di perangkat (Mode Tamu). Masuk dengan akun Google untuk dapat mengirimkan tugas langsung ke Panel Guru secara daring.')
+      return
     }
 
-    setIsSaving(false)
-    alert('Tugas Sintaks POE Anda berhasil disimpan dan dikirimkan ke Panel Guru!')
+    // Pengguna login: coba sinkronisasi ke Firestore
+    setSyncStatus(SYNC_STATUS.PENDING)
+    try {
+      const res = await syncPoeToFirestore(currentUser, module.id)
+      if (res.success && !res.offline) {
+        setSyncStatus(SYNC_STATUS.SYNCED)
+        finalStatus = SYNC_STATUS.SYNCED
+        alert('Tugas Sintaks POE Anda berhasil disimpan dan dikirimkan ke Panel Guru!')
+      } else {
+        setSyncStatus(SYNC_STATUS.FAILED)
+        finalStatus = SYNC_STATUS.FAILED
+        alert('Gagal menyinkronkan tugas ke cloud. Jawaban Anda tetap tersimpan secara aman di perangkat lokal. Silakan gunakan tombol "Coba Lagi" untuk mengirim ulang.')
+      }
+    } catch (err) {
+      console.warn('Sync POE failed:', err)
+      setSyncStatus(SYNC_STATUS.FAILED)
+      finalStatus = SYNC_STATUS.FAILED
+      alert('Gagal menyinkronkan tugas ke cloud. Jawaban Anda tetap tersimpan secara aman di perangkat lokal. Silakan periksa koneksi internet Anda dan gunakan tombol "Coba Lagi".')
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  // Tombol Coba Lagi untuk sinkronisasi ke Firestore saat gagal (Temuan 03-03)
+  const handleRetrySync = async () => {
+    if (isGuest || !currentUser?.uid) {
+      alert('Mode Tamu: Masuk dengan akun Google untuk menyinkronkan tugas ke cloud Panel Guru.')
+      return
+    }
+    setIsRetrying(true)
+    setSyncStatus(SYNC_STATUS.PENDING)
+    try {
+      const res = await syncPoeToFirestore(currentUser, module.id)
+      if (res.success && !res.offline) {
+        setSyncStatus(SYNC_STATUS.SYNCED)
+        alert('Tugas Sintaks POE Anda berhasil disinkronkan dan dikirimkan ke Panel Guru!')
+      } else {
+        setSyncStatus(SYNC_STATUS.FAILED)
+        alert('Sinkronisasi ulang gagal. Jawaban Anda tetap tersimpan aman di perangkat lokal.')
+      }
+    } catch (err) {
+      console.warn('Retry sync POE error:', err)
+      setSyncStatus(SYNC_STATUS.FAILED)
+      alert('Sinkronisasi ulang gagal. Periksa koneksi internet Anda.')
+    } finally {
+      setIsRetrying(false)
+    }
   }
 
   return (
@@ -181,7 +294,7 @@ export default function PoeInteractiveSection({
       <div className="poe-status-bar">
         <div className="status-indicator-left">
           {isSaving ? (
-            <span className="save-status-text saving">Menyimpan draf...</span>
+            <span className="save-status-text saving">Menyimpan...</span>
           ) : saveMessage ? (
             <span className="save-status-text success">{saveMessage}</span>
           ) : (
@@ -193,10 +306,22 @@ export default function PoeInteractiveSection({
           <span className={`sync-badge ${syncStatus.toLowerCase().replace(/\s+/g, '-')}`}>
             Status Pengiriman: {syncStatus}
           </span>
-          {isSubmitted && (
+          {isSubmitted && syncStatus === SYNC_STATUS.SYNCED && (
             <span className="submitted-check-badge">
               <CheckCircle2 size={13} />
               <span>Terkirim ke Panel Guru</span>
+            </span>
+          )}
+          {isSubmitted && (syncStatus === SYNC_STATUS.LOCAL || isGuest) && (
+            <span className="submitted-local-badge">
+              <CheckCircle2 size={13} />
+              <span>Tersimpan di Perangkat (Mode Tamu)</span>
+            </span>
+          )}
+          {isSubmitted && syncStatus === SYNC_STATUS.FAILED && (
+            <span className="submitted-failed-badge">
+              <AlertCircle size={13} />
+              <span>Belum Terkirim ke Cloud</span>
             </span>
           )}
         </div>
@@ -451,6 +576,28 @@ export default function PoeInteractiveSection({
             </div>
           </div>
 
+          {/* Baris Peringatan jika Gagal Sinkronisasi dengan Tombol Coba Lagi */}
+          {syncStatus === SYNC_STATUS.FAILED && (
+            <div className="poe-sync-alert-banner">
+              <div className="alert-content">
+                <AlertCircle size={18} className="text-amber" />
+                <div className="alert-text-block">
+                  <strong>Sinkronisasi ke Cloud Belum Berhasil</strong>
+                  <p>Jawaban Anda tetap aman tersimpan di perangkat lokal ini. Silakan gunakan tombol Coba Lagi.</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                className="btn-poe-retry-inline"
+                onClick={handleRetrySync}
+                disabled={isSaving || isRetrying}
+              >
+                <RotateCw size={14} className={isRetrying ? 'spin' : ''} />
+                <span>{isRetrying ? 'Mengirim Ulang...' : 'Coba Lagi'}</span>
+              </button>
+            </div>
+          )}
+
           {/* Tombol Kirim Jawaban POE ke Guru */}
           <div className="stage-action-row between">
             <button
@@ -462,15 +609,33 @@ export default function PoeInteractiveSection({
               <span>Ulangi Observasi Simulasi</span>
             </button>
 
-            <button
-              type="button"
-              className="btn-submit-poe-final"
-              onClick={handleSubmitPoe}
-              disabled={isSaving}
-            >
-              <Send size={17} />
-              <span>{isSubmitted ? 'Perbarui Jawaban ke Panel Guru' : 'Kirim Tugas POE ke Panel Guru'}</span>
-            </button>
+            <div className="poe-submit-actions-group">
+              {syncStatus === SYNC_STATUS.FAILED && (
+                <button
+                  type="button"
+                  className="btn-poe-retry-action"
+                  onClick={handleRetrySync}
+                  disabled={isSaving || isRetrying}
+                >
+                  <RotateCw size={15} className={isRetrying ? 'spin' : ''} />
+                  <span>{isRetrying ? 'Mengirim Ulang...' : 'Coba Lagi Kirim ke Guru'}</span>
+                </button>
+              )}
+
+              <button
+                type="button"
+                className="btn-submit-poe-final"
+                onClick={handleSubmitPoe}
+                disabled={isSaving || isRetrying}
+              >
+                <Send size={17} />
+                <span>
+                  {isGuest
+                    ? (isSubmitted ? 'Perbarui Simpanan Lokal' : 'Simpan Tugas (Mode Tamu)')
+                    : (isSubmitted ? 'Perbarui Jawaban ke Panel Guru' : 'Kirim Tugas POE ke Panel Guru')}
+                </span>
+              </button>
+            </div>
           </div>
         </div>
       )}

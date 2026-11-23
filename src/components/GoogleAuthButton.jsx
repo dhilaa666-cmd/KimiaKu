@@ -14,15 +14,18 @@ import {
 import {
   loginWithGoogle,
   logoutUser,
-  subscribeToAuth
+  subscribeToAuth,
+  isFirebaseConfigured
 } from '../lib/firebase'
 import {
   SYNC_STATUS,
   getStoredQuizData,
   syncQuizToFirestore,
   retrySyncQuiz,
-  subscribeSyncStatus
-} from '../utils/storage'
+  subscribeSyncStatus,
+  GUEST_USER_ID,
+  canClaimGuestQuizData
+} from '../utils/storage.js'
 
 export default function GoogleAuthButton({ onSyncComplete, onLogout, isGuest = false }) {
   const [currentUser, setCurrentUser] = useState(null)
@@ -40,44 +43,58 @@ export default function GoogleAuthButton({ onSyncComplete, onLogout, isGuest = f
       setAuthLoading(false)
       setActionError(null)
 
-      // Slide 11: Ketika login, jika ada data kuis lokal, tawarkan untuk sinkronisasi ke akun
+      // Temuan 03-02 & 03-12: Muat data yang terisolasi untuk akun yang login
       if (user) {
-        const currentData = getStoredQuizData()
-        if (
-          currentData &&
-          (Object.keys(currentData.answers || {}).length > 0 || currentData.isSubmitted) &&
-          currentData.syncStatus !== SYNC_STATUS.SYNCED
-        ) {
+        setQuizRecord(getStoredQuizData(user.uid))
+
+        // Hanya tawarkan klaim jika ada data sesi TAMU (guest) yang valid dan belum dimiliki akun lain
+        if (canClaimGuestQuizData(user)) {
           setShowSyncPrompt(true)
+        } else {
+          setShowSyncPrompt(false)
         }
+      } else {
+        setQuizRecord(getStoredQuizData(GUEST_USER_ID))
+        setShowSyncPrompt(false)
       }
     })
 
     // 2. Berlangganan perubahan data storage kuis & status sinkronisasi
     const unsubscribeStorage = subscribeSyncStatus((updated) => {
-      setQuizRecord(updated)
+      // Hanya perbarui state jika record yang diperbarui cocok dengan akun yang aktif
+      const activeId = currentUser?.uid || GUEST_USER_ID
+      if (!updated.ownerId || updated.ownerId === activeId) {
+        setQuizRecord(updated)
+      }
     })
 
     return () => {
       unsubscribeAuth()
       unsubscribeStorage()
     }
-  }, [])
+  }, [currentUser?.uid])
 
   // Handler Login dengan Google Popup
   const handleGoogleLogin = async () => {
     setActionError(null)
+    if (!isFirebaseConfigured) {
+      setActionError('Konfigurasi Firebase belum diatur pada .env. Aplikasi saat ini beroperasi penuh dalam Mode Tamu Lokal.')
+      return
+    }
     try {
       setAuthLoading(true)
       const credential = await loginWithGoogle()
       const user = credential.user
       setCurrentUser(user)
 
-      // Cek apakah ada draf atau hasil kuis lokal yang bisa disinkronkan
-      const localData = getStoredQuizData()
-      const hasAnswers = localData && Object.keys(localData.answers || {}).length > 0
-      if (hasAnswers) {
+      // Temuan 03-02: Muat data terisolasi untuk akun yang baru login
+      setQuizRecord(getStoredQuizData(user.uid))
+
+      // Temuan 03-12: Cek apakah ada data kuis sesi Tamu lokal yang valid untuk diklaim
+      if (canClaimGuestQuizData(user)) {
         setShowSyncPrompt(true)
+      } else {
+        setShowSyncPrompt(false)
       }
     } catch (err) {
       console.warn('Login Google dibatalkan atau gagal:', err)
@@ -92,10 +109,13 @@ export default function GoogleAuthButton({ onSyncComplete, onLogout, isGuest = f
   // Handler Logout
   const handleLogout = async () => {
     setUserDropdownOpen(false)
+    setShowSyncPrompt(false)
     try {
       localStorage.removeItem('kimiaku-guest-session')
       await logoutUser()
       setCurrentUser(null)
+      // Temuan 03-02: Beralih kembali ke data guest bersih saat logout
+      setQuizRecord(getStoredQuizData(GUEST_USER_ID))
       if (onLogout) {
         onLogout()
       }
@@ -104,7 +124,7 @@ export default function GoogleAuthButton({ onSyncComplete, onLogout, isGuest = f
     }
   }
 
-  // Handler Konfirmasi Sinkronisasi ke Firestore (Idempoten)
+  // Handler Konfirmasi Sinkronisasi ke Firestore (Idempoten & Proteksi Akun Temuan 03-12)
   const handleConfirmSync = async () => {
     if (!currentUser) return
     setIsSyncing(true)
@@ -112,8 +132,17 @@ export default function GoogleAuthButton({ onSyncComplete, onLogout, isGuest = f
     setActionError(null)
 
     try {
-      const res = await syncQuizToFirestore(currentUser)
+      // Temuan 03-12: Pastikan hanya data tamu yang diklaim ke akun ini
+      const candidateRecord = getStoredQuizData(GUEST_USER_ID)
+      if (candidateRecord.ownerId && candidateRecord.ownerId !== GUEST_USER_ID && candidateRecord.ownerId !== currentUser.uid) {
+        setActionError(`Data kuis lokal sudah dimiliki akun lain (${candidateRecord.ownerId}). Pengaitan ditolak demi isolasi akun.`)
+        setIsSyncing(false)
+        return
+      }
+
+      const res = await syncQuizToFirestore(currentUser, candidateRecord)
       if (res.success) {
+        setQuizRecord(res.record)
         if (onSyncComplete) onSyncComplete(res.record)
       } else {
         setActionError(res.error || 'Gagal mengirim data')
@@ -357,7 +386,7 @@ export default function GoogleAuthButton({ onSyncComplete, onLogout, isGuest = f
             </div>
 
             <p className="prompt-desc">
-              Ditemukan data kuis di perangkat ini. Apakah Anda ingin mengaitkan dan menyimpan hasil ini ke akun:
+              Ditemukan data kuis sesi Tamu di perangkat ini. Apakah Anda ingin mengaitkan dan menyimpan hasil ini ke akun Anda:
             </p>
 
             <div className="prompt-user-card">
@@ -365,27 +394,36 @@ export default function GoogleAuthButton({ onSyncComplete, onLogout, isGuest = f
               <span>{currentUser.email}</span>
             </div>
 
-            <div className="prompt-detail-card">
-              <div className="prompt-detail-row">
-                <span>Modul:</span>
-                <strong>Faktor Laju Reaksi (v1)</strong>
-              </div>
-              <div className="prompt-detail-row">
-                <span>ID Percobaan:</span>
-                <code>{quizRecord?.id || 'attempt-local'}</code>
-              </div>
-              <div className="prompt-detail-row">
-                <span>Status Jawaban:</span>
-                <strong>
-                  {quizRecord?.isSubmitted
-                    ? `Selesai (Skor: ${quizRecord.score}%)`
-                    : `Draf (${Object.keys(quizRecord?.answers || {}).length} soal)`}
-                </strong>
-              </div>
-            </div>
+            {(() => {
+              const guestRecord = getStoredQuizData(GUEST_USER_ID)
+              return (
+                <div className="prompt-detail-card">
+                  <div className="prompt-detail-row">
+                    <span>Modul:</span>
+                    <strong>Faktor Laju Reaksi (v1)</strong>
+                  </div>
+                  <div className="prompt-detail-row">
+                    <span>ID Percobaan:</span>
+                    <code>{guestRecord?.id || 'attempt-local'}</code>
+                  </div>
+                  <div className="prompt-detail-row">
+                    <span>Status Awal:</span>
+                    <span className="text-teal font-semibold">Tamu Lokal (Belum Terkait Akun)</span>
+                  </div>
+                  <div className="prompt-detail-row">
+                    <span>Hasil Pengerjaan:</span>
+                    <strong>
+                      {guestRecord?.isSubmitted
+                        ? `Selesai (Skor: ${guestRecord.score}%)`
+                        : `Draf (${Object.keys(guestRecord?.answers || {}).length} soal)`}
+                    </strong>
+                  </div>
+                </div>
+              )
+            })()}
 
             <p className="prompt-note">
-              Hasil yang dikirim ke akun dapat ditinjau oleh guru kelas. Hasil di server menggunakan ID percobaan yang sama sehingga pengiriman ulang tidak membuat catatan duplikat (Idempoten).
+              Hasil kuis tamu akan dialihkan menjadi milik akun Anda dan disimpan secara permanen di server dengan ID percobaan yang sama (Idempoten).
             </p>
 
             {actionError && (
