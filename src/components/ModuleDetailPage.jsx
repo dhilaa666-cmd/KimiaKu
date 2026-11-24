@@ -16,6 +16,7 @@ import PoeInteractiveSection from './PoeInteractiveSection'
 import RealLifeVideoLab from './RealLifeVideoLab'
 import ConceptMindMap from './ConceptMindMap'
 import GlossaryModal from './GlossaryModal'
+import { getStoredPoeData } from '../utils/storage'
 
 export default function ModuleDetailPage({
   module,
@@ -33,6 +34,7 @@ export default function ModuleDetailPage({
   isGuest
 }) {
   const [activeTab, setActiveTab] = useState(initialTab) // 'materi' | 'simulasi' | 'lab-video' | 'mindmap'
+  const [poeStep, setPoeStep] = useState('predict') // 'predict' | 'observe' | 'explain'
   const [isGlossaryOpen, setIsGlossaryOpen] = useState(false)
 
   // Sinkronisasi tab jika initialTab berubah dari hash URL / parent state
@@ -42,7 +44,49 @@ export default function ModuleDetailPage({
     }
   }, [initialTab])
 
+  // Reset tahap POE ke predict jika modul berubah
+  useEffect(() => {
+    setPoeStep('predict')
+  }, [module?.id])
+
   if (!module) return null
+
+  const handlePoeStepClick = (targetStep) => {
+    const currentUid = currentUser?.uid || 'guest'
+    const poeData = getStoredPoeData(module.id, currentUid)
+    const predictLength = (poeData?.predictText || '').trim().length
+    const observeLength = (poeData?.observeNotes || '').trim().length
+
+    if (poeStep === 'predict' && (targetStep === 'observe' || targetStep === 'explain')) {
+      if (predictLength < 20) {
+        alert('Harap tuliskan dugaan awal dan alasanmu minimal 20 karakter terlebih dahulu sebelum melanjutkan ke tahap Observe/Explain.')
+        return
+      }
+    }
+
+    if (poeStep === 'observe' && targetStep === 'explain') {
+      if (observeLength < 20) {
+        alert('Harap tuliskan catatan hasil pengamatan simulasi minimal 20 karakter terlebih dahulu sebelum melanjutkan ke tahap Explain.')
+        return
+      }
+    }
+
+    if (targetStep === 'explain') {
+      if (predictLength < 20) {
+        alert('Harap lengkapi tahap Predict (minimal 20 karakter) terlebih dahulu.')
+        return
+      }
+      if (observeLength < 20) {
+        alert('Harap lengkapi tahap Observe (minimal 20 karakter) terlebih dahulu.')
+        return
+      }
+    }
+
+    setPoeStep(targetStep)
+    window.scrollTo({ top: 0, behavior: 'instant' })
+    const scrollContainer = document.querySelector('.main-content-scroll-area')
+    if (scrollContainer) scrollContainer.scrollTo({ top: 0, behavior: 'instant' })
+  }
 
   const handleTabChange = (tabId) => {
     setActiveTab(tabId)
@@ -328,17 +372,70 @@ export default function ModuleDetailPage({
         {/* ========================================================
             TAB 2: SINTAKS POE INTERAKTIF (Predict - Observe - Explain)
             ======================================================== */}
-        {activeTab === 'simulasi' && (
-          <div className="tab-pane-poe">
-            <PoeInteractiveSection
-              key={module.id}
-              module={module}
-              onCompletePoe={onCompletePoe}
-              currentUser={currentUser}
-              isGuest={isGuest}
-            />
-          </div>
-        )}
+        {activeTab === 'simulasi' && (() => {
+          const currentUid = currentUser?.uid || 'guest'
+          const poeData = getStoredPoeData(module.id, currentUid)
+          const isPredictDone = (poeData?.predictText || '').trim().length >= 20
+          const isObserveDone = (poeData?.observeNotes || '').trim().length >= 20
+          const isExplainDone = Boolean(poeData?.isSubmitted) || (poeData?.explainText || '').trim().length >= 20
+
+          return (
+            <div className="tab-pane-poe">
+              {/* Stepper Header Tunggal POE yang dikendalikan dari ModuleDetailPage */}
+              <div className="poe-steps-nav">
+                <button
+                  type="button"
+                  className={`poe-nav-step ${poeStep === 'predict' ? 'active' : ''} ${isPredictDone ? 'done' : ''}`}
+                  onClick={() => handlePoeStepClick('predict')}
+                >
+                  <div className="step-circle">1</div>
+                  <div className="step-info">
+                    <span className="step-phase-name">Predict</span>
+                    <small className="step-phase-sub">Dugaan Awal</small>
+                  </div>
+                </button>
+
+                <div className="step-connector-line"></div>
+
+                <button
+                  type="button"
+                  className={`poe-nav-step ${poeStep === 'observe' ? 'active' : ''} ${isObserveDone ? 'done' : ''}`}
+                  onClick={() => handlePoeStepClick('observe')}
+                >
+                  <div className="step-circle">2</div>
+                  <div className="step-info">
+                    <span className="step-phase-name">Observe</span>
+                    <small className="step-phase-sub">Simulasi & Pengamatan</small>
+                  </div>
+                </button>
+
+                <div className="step-connector-line"></div>
+
+                <button
+                  type="button"
+                  className={`poe-nav-step ${poeStep === 'explain' ? 'active' : ''} ${isExplainDone ? 'done' : ''}`}
+                  onClick={() => handlePoeStepClick('explain')}
+                >
+                  <div className="step-circle">3</div>
+                  <div className="step-info">
+                    <span className="step-phase-name">Explain</span>
+                    <small className="step-phase-sub">Penjelasan Ilmiah</small>
+                  </div>
+                </button>
+              </div>
+
+              <PoeInteractiveSection
+                key={module.id}
+                module={module}
+                poeStep={poeStep}
+                setPoeStep={setPoeStep}
+                onCompletePoe={onCompletePoe}
+                currentUser={currentUser}
+                isGuest={isGuest}
+              />
+            </div>
+          )
+        })()}
 
         {/* ========================================================
             TAB 3: VIDEO LAB NYATA & STUDI KASUS KONTEKSTUAL

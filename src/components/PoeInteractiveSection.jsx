@@ -25,9 +25,13 @@ export default function PoeInteractiveSection({
   module,
   onCompletePoe,
   currentUser,
-  isGuest
+  isGuest,
+  poeStep: controlledPoeStep,
+  setPoeStep: setControlledPoeStep
 }) {
-  const [poeStep, setPoeStep] = useState('predict') // 'predict' | 'observe' | 'explain'
+  const [internalPoeStep, setInternalPoeStep] = useState('predict')
+  const poeStep = controlledPoeStep !== undefined ? controlledPoeStep : internalPoeStep
+  const setPoeStep = setControlledPoeStep || setInternalPoeStep
   const poeScenario = module.poeScenario
 
   const currentUid = currentUser?.uid || 'guest'
@@ -145,10 +149,41 @@ export default function PoeInteractiveSection({
     }, 150)
   }
 
-  // Go to step with scroll reset
-  const goToStep = (step) => {
+  // Go to step with scroll reset and minimum 20-character validation
+  const MIN_CHARS = 20
+
+  const goToStep = (targetStep) => {
+    // Validasi saat berpindah maju antar-tahap
+    if (poeStep === 'predict' && (targetStep === 'observe' || targetStep === 'explain')) {
+      if (!predictText || predictText.trim().length < MIN_CHARS) {
+        alert(`Harap tuliskan dugaan awal dan alasanmu minimal ${MIN_CHARS} karakter terlebih dahulu sebelum melanjutkan ke tahap ${targetStep === 'observe' ? 'Observe' : 'Explain'}.`)
+        return
+      }
+    }
+
+    if (poeStep === 'observe' && targetStep === 'explain') {
+      if (!observeNotes || observeNotes.trim().length < MIN_CHARS) {
+        alert(`Harap tuliskan catatan hasil pengamatan simulasi minimal ${MIN_CHARS} karakter terlebih dahulu sebelum melanjutkan ke tahap Explain.`)
+        return
+      }
+    }
+
+    // Jika langsung klik step Explain dari stepper navigasi
+    if (targetStep === 'explain') {
+      if (!predictText || predictText.trim().length < MIN_CHARS) {
+        alert(`Harap lengkapi tahap Predict (minimal ${MIN_CHARS} karakter) terlebih dahulu.`)
+        setPoeStep('predict')
+        return
+      }
+      if (!observeNotes || observeNotes.trim().length < MIN_CHARS) {
+        alert(`Harap lengkapi tahap Observe (minimal ${MIN_CHARS} karakter) terlebih dahulu.`)
+        setPoeStep('observe')
+        return
+      }
+    }
+
     handleSaveDraft()
-    setPoeStep(step)
+    setPoeStep(targetStep)
     window.scrollTo({ top: 0, behavior: 'instant' })
     const scrollContainer = document.querySelector('.main-content-scroll-area')
     if (scrollContainer) scrollContainer.scrollTo({ top: 0, behavior: 'instant' })
@@ -158,13 +193,18 @@ export default function PoeInteractiveSection({
 
   // Submit final POE answers to teacher (local + Firestore)
   const handleSubmitPoe = async () => {
-    if (!predictText.trim()) {
-      alert('Harap isi kolom Dugaan Awal (Prediksi) Anda sebelum mengirimkan tugas POE.')
+    if (!predictText || predictText.trim().length < MIN_CHARS) {
+      alert(`Harap isi kolom Dugaan Awal (Prediksi) Anda minimal ${MIN_CHARS} karakter sebelum mengirimkan tugas POE.`)
       setPoeStep('predict')
       return
     }
-    if (!explainText.trim()) {
-      alert('Harap lengkapi kolom Penjelasan Ilmiah (Explain) Anda sebelum mengirimkan tugas POE.')
+    if (!observeNotes || observeNotes.trim().length < MIN_CHARS) {
+      alert(`Harap lengkapi kolom Catatan Pengamatan (Observe) Anda minimal ${MIN_CHARS} karakter sebelum mengirimkan tugas POE.`)
+      setPoeStep('observe')
+      return
+    }
+    if (!explainText || explainText.trim().length < MIN_CHARS) {
+      alert(`Harap lengkapi kolom Penjelasan Ilmiah (Explain) Anda minimal ${MIN_CHARS} karakter sebelum mengirimkan tugas POE.`)
       return
     }
 
@@ -247,49 +287,6 @@ export default function PoeInteractiveSection({
 
   return (
     <div className="poe-interactive-wrapper">
-      {/* Stepper Header POE (Predict - Observe - Explain) */}
-      <div className="poe-steps-nav">
-        <button
-          type="button"
-          className={`poe-nav-step ${poeStep === 'predict' ? 'active' : ''} ${predictText.trim() ? 'done' : ''}`}
-          onClick={() => goToStep('predict')}
-        >
-          <div className="step-circle">1</div>
-          <div className="step-info">
-            <span className="step-phase-name">Predict</span>
-            <small className="step-phase-sub">Dugaan Awal</small>
-          </div>
-        </button>
-
-        <div className="step-connector-line"></div>
-
-        <button
-          type="button"
-          className={`poe-nav-step ${poeStep === 'observe' ? 'active' : ''} ${observeNotes.trim() ? 'done' : ''}`}
-          onClick={() => goToStep('observe')}
-        >
-          <div className="step-circle">2</div>
-          <div className="step-info">
-            <span className="step-phase-name">Observe</span>
-            <small className="step-phase-sub">Simulasi & Pengamatan</small>
-          </div>
-        </button>
-
-        <div className="step-connector-line"></div>
-
-        <button
-          type="button"
-          className={`poe-nav-step ${poeStep === 'explain' ? 'active' : ''} ${isSubmitted ? 'done' : ''}`}
-          onClick={() => goToStep('explain')}
-        >
-          <div className="step-circle">3</div>
-          <div className="step-info">
-            <span className="step-phase-name">Explain</span>
-            <small className="step-phase-sub">Penjelasan Ilmiah</small>
-          </div>
-        </button>
-      </div>
-
       {/* Bar Notifikasi Status Sinkronisasi */}
       <div className="poe-status-bar">
         <div className="status-indicator-left">
@@ -382,7 +379,7 @@ export default function PoeInteractiveSection({
                   Kolom Jawaban Siswa (Dugaan Awal & Alasan Anda):
                 </strong>
                 <p className="input-field-hint">
-                  Tuliskan dalam 2–4 kalimat: Mengapa Anda memilih prediksi tersebut? Apa yang Anda perkirakan terjadi pada partikel dan gelembung gas?
+                  Tuliskan dugaan awal dan alasanmu berdasarkan pemahamanmu sebelum menguji simulasi.
                 </p>
               </div>
             </div>
@@ -390,14 +387,14 @@ export default function PoeInteractiveSection({
             <textarea
               className="poe-textarea"
               rows={4}
-              placeholder="Contoh: Menurut dugaan saya, reaksi akan lebih cepat karena kenaikan suhu membuat partikel bergerak lebih lincah sehingga frekuensi tabrakan meningkat..."
+              placeholder="Tuliskan dugaan awal dan alasanmu berdasarkan pemahamanmu sebelum menguji simulasi (minimal 20 karakter)..."
               value={predictText}
               onChange={(e) => setPredictText(e.target.value)}
               onBlur={() => handleSaveDraft()}
             />
 
             <div className="textarea-footer-info">
-              <span>Jawaban akan diverifikasi oleh Guru di Panel Guru</span>
+              <span>Minimal 20 karakter &bull; Terisi: {predictText.trim().length} karakter</span>
               <button
                 type="button"
                 className="btn-quick-save-draft"
@@ -441,16 +438,56 @@ export default function PoeInteractiveSection({
             </div>
           </div>
 
-          {/* Simulator Partikel / Reaksi Makroskopis */}
+          {/* a) Ringkasan Teks Prediksi Awal Siswa (Read-only) */}
+          <div className="prediction-recap-box">
+            <div className="recap-header">
+              <CheckCircle2 size={18} className="text-emerald" />
+              <strong>Ringkasan Prediksi Awal Anda (Tahap Predict):</strong>
+            </div>
+            {predictChoiceId && (
+              <p style={{ margin: '0 0 6px 0', fontSize: '0.88rem', fontWeight: 600, color: '#334155' }}>
+                Pilihan Hipotesis: {poeScenario?.predictions?.find(p => p.id === predictChoiceId)?.text || predictChoiceId}
+              </p>
+            )}
+            <p className="recap-text">
+              <em>&quot;{predictText.trim() ? predictText : '(Belum mengisi dugaan awal di langkah 1)'}&quot;</em>
+            </p>
+          </div>
+
+          {/* b) Kotak Panduan Singkat Prosedur Penggunaan Simulasi */}
+          <div style={{
+            background: '#F0FDF4',
+            border: '1px solid #BBF7D0',
+            borderRadius: '12px',
+            padding: '16px 20px',
+            color: '#166534'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', fontWeight: 700, fontSize: '0.95rem' }}>
+              <Sparkles size={18} className="text-emerald" />
+              <span>Prosedur Penggunaan Simulasi:</span>
+            </div>
+            <ol style={{ margin: 0, paddingLeft: '20px', fontSize: '0.88rem', lineHeight: '1.6', color: '#15803D' }}>
+              <li>Tinjau kembali hipotesis awal Anda.</li>
+              <li>Atur variabel Suhu Reaksi, Konsentrasi Reaktan, Luas Bidang Sentuh, dan Katalisator pada panel kiri.</li>
+              <li>Amati pergerakan partikel serta tumbukan efektif pada Visualisasi Tumbukan Mikroskopis di panel kanan.</li>
+              <li>Klik tombol &quot;Uji Laju Pembentukan Produk&quot; untuk melihat hasil laju reaksi.</li>
+              <li>Tuliskan hasil pengamatan pada Kolom Catatan Pengamatan Anda, lalu lanjut ke Tahap 3: Explain.</li>
+            </ol>
+          </div>
+
+          {/* c) Simulator Partikel / Reaksi Makroskopis */}
           <div className="poe-sim-container-card">
+            <style>{`.poe-sim-container-card .poe-action-row { display: none !important; }`}</style>
             <PoeSimulation
               module={module}
+              initialStage="observe"
+              hideStepper={true}
               onCompletePoe={() => {}}
               isCompleted={false}
             />
           </div>
 
-          {/* Kolom Catatan Pengamatan Siswa (Wajib Guru) */}
+          {/* d) Kolom Catatan Pengamatan Siswa (Wajib Guru) */}
           <div className="student-input-card">
             <div className="input-card-header">
               <FileEdit size={18} className="text-emerald" />
@@ -459,7 +496,7 @@ export default function PoeInteractiveSection({
                   Kolom Catatan Pengamatan Anda:
                 </strong>
                 <p className="input-field-hint">
-                  Catat apa yang Anda amati: Apakah partikel bergerak lebih cepat? Berapa banyak tumbukan efektif yang terjadi? Bagaimana volume gas CO₂ pada kurva waktu?
+                  Tuliskan hasil pengamatanmu dari simulasi: (1) Bagaimana perubahan gerak partikel saat variabel diubah? (2) Bagaimana perbandingan jumlah tumbukan efektifnya? (3) Bagaimana perubahan laju pembentukan produk?
                 </p>
               </div>
             </div>
@@ -467,14 +504,14 @@ export default function PoeInteractiveSection({
             <textarea
               className="poe-textarea"
               rows={4}
-              placeholder="Contoh: Saat suhu dinaikkan ke 60°C dan konsentrasi 2 M, partikel di wadah bergerak sangat cepat dan percikan tumbukan efektif bertambah banyak. Pada grafik makroskopis, kurva volume gas melesat curam dalam 15 detik pertama..."
+              placeholder="Tuliskan hasil pengamatanmu dari simulasi:&#10;(1) Bagaimana perubahan gerak partikel saat variabel diubah?&#10;(2) Bagaimana perbandingan jumlah tumbukan efektifnya?&#10;(3) Bagaimana perubahan laju pembentukan produk?&#10;(Minimal 20 karakter)..."
               value={observeNotes}
               onChange={(e) => setObserveNotes(e.target.value)}
               onBlur={() => handleSaveDraft()}
             />
 
             <div className="textarea-footer-info">
-              <span>Catatan ini tersimpan dan dapat dibaca oleh Aulia di Panel Guru</span>
+              <span>Minimal 20 karakter &bull; Terisi: {observeNotes.trim().length} karakter</span>
               <button
                 type="button"
                 className="btn-quick-save-draft"
@@ -527,25 +564,54 @@ export default function PoeInteractiveSection({
             </div>
           </div>
 
-          {/* Komparasi Prediksi Awal */}
-          <div className="prediction-recap-box">
-            <div className="recap-header">
-              <CheckCircle2 size={18} className="text-coral" />
-              <strong>Rekapitulasi Prediksi Awal Anda:</strong>
+          {/* SEBELUM SUBMIT: Rekapitulasi Catatan Observasi untuk Membantu Siswa Menulis Penjelasan */}
+          {!isSubmitted && (
+            <div className="prediction-recap-box">
+              <div className="recap-header">
+                <CheckCircle2 size={18} className="text-coral" />
+                <strong>Catatan Pengamatan Anda dari Tahap Observe:</strong>
+              </div>
+              <p className="recap-text">
+                <em>&quot;{observeNotes.trim() ? observeNotes : '(Belum ada catatan pengamatan)'}&quot;</em>
+              </p>
             </div>
-            <p className="recap-text">
-              <em>"{predictText || '(Belum mengisi dugaan awal di langkah 1)'}"</em>
-            </p>
-          </div>
+          )}
 
-          {/* Landasan Mekanisme Sains dari Kurikulum */}
-          <div className="official-explanation-box">
-            <h4 className="official-title">Mekanisme Sains Resmi (Kurikulum Merdeka):</h4>
-            <div
-              className="official-content"
-              dangerouslySetInnerHTML={{ __html: poeScenario.explanationPoe }}
-            />
-          </div>
+          {/* SETELAH SUBMIT: Evaluasi Kebenaran Prediksi Awal & Mekanisme Sains Resmi */}
+          {isSubmitted && (
+            <>
+              <div className="prediction-recap-box" style={{ background: '#F0F9FF', borderLeftColor: '#0EA5E9' }}>
+                <div className="recap-header">
+                  <CheckCircle2 size={18} className="text-sky" />
+                  <strong>Refleksi &amp; Evaluasi Prediksi Awal Anda:</strong>
+                </div>
+                {predictChoiceId && (
+                  <p style={{ margin: '0 0 6px 0', fontSize: '0.88rem', fontWeight: 600, color: '#334155' }}>
+                    Hipotesis yang Anda pilih:{' '}
+                    <span style={{ color: '#0369A1' }}>
+                      {poeScenario?.predictions?.find(p => p.id === predictChoiceId)?.text || predictChoiceId}
+                    </span>
+                  </p>
+                )}
+                <p className="recap-text" style={{ marginBottom: '8px' }}>
+                  <em>Dugaan Awal Anda: &quot;{predictText || '(Belum mengisi)'}&quot;</em>
+                </p>
+                <p style={{ fontSize: '0.84rem', color: '#0369A1', margin: 0 }}>
+                  Bandingkan penjelasan ilmiah akhir Anda dengan hipotesis awal di atas berdasarkan hasil eksperimen simulasi.
+                </p>
+              </div>
+
+              {poeScenario?.explanationPoe && (
+                <div className="official-explanation-box">
+                  <h4 className="official-title">Mekanisme Sains Resmi (Kurikulum Merdeka):</h4>
+                  <div
+                    className="official-content"
+                    dangerouslySetInnerHTML={{ __html: poeScenario.explanationPoe }}
+                  />
+                </div>
+              )}
+            </>
+          )}
 
           {/* Kolom Teks Penjelasan Siswa Sendiri (Dikirim ke Guru) */}
           <div className="student-input-card highlight">
@@ -556,8 +622,8 @@ export default function PoeInteractiveSection({
                   Penjelasan Ilmiah Siswa (Wajib Dinilai Guru):
                 </strong>
                 <p className="input-field-hint">
-                  Gunakan istilah ilmiah: <strong>Tumbukan Efektif</strong>, <strong>Energi Kinetik</strong>,{' '}
-                  <strong>Energi Aktivasi (Ea)</strong>, atau <strong>Luas Bidang Sentuh</strong> untuk menjelaskan mengapa fenomena tersebut terjadi.
+                  Hubungkan hasil pengamatanmu dari simulasi dengan konsep <strong>Tumbukan Efektif</strong>, <strong>Energi Kinetik</strong>,{' '}
+                  <strong>Energi Aktivasi (Ea)</strong>, atau <strong>Luas Bidang Sentuh</strong>. Mengapa fenomena laju reaksi tersebut dapat terjadi?
                 </p>
               </div>
             </div>
@@ -565,14 +631,22 @@ export default function PoeInteractiveSection({
             <textarea
               className="poe-textarea"
               rows={5}
-              placeholder="Tuliskan analisis ilmiah Anda secara mendalam di sini untuk dinilai oleh Aulia di Panel Guru..."
+              placeholder="Hubungkan hasil pengamatan simulasi dengan konsep Tumbukan Efektif, Energi Kinetik, Energi Aktivasi (Ea), atau Luas Bidang Sentuh. Mengapa fenomena laju reaksi tersebut dapat terjadi? (Minimal 20 karakter)..."
               value={explainText}
               onChange={(e) => setExplainText(e.target.value)}
               onBlur={() => handleSaveDraft()}
             />
 
             <div className="textarea-footer-info">
-              <span>Data tersimpan otomatis di localStorage dan disinkronkan ke Firestore</span>
+              <span>Minimal 20 karakter &bull; Terisi: {explainText.trim().length} karakter</span>
+              <button
+                type="button"
+                className="btn-quick-save-draft"
+                onClick={() => handleSaveDraft()}
+              >
+                <Save size={14} />
+                <span>Simpan Draf</span>
+              </button>
             </div>
           </div>
 

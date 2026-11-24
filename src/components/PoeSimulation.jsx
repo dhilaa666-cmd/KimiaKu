@@ -16,11 +16,23 @@ import {
   Info
 } from 'lucide-react'
 
-export default function PoeSimulation({ module, onCompletePoe, isCompleted = false }) {
+export default function PoeSimulation({
+  module,
+  onCompletePoe,
+  isCompleted = false,
+  initialStage = 'observe',
+  hideStepper = false
+}) {
   // Current POE stage: 'predict' | 'observe' | 'explain'
-  const [stage, setStage] = useState('predict')
+  const [stage, setStage] = useState(initialStage)
   const [selectedPrediction, setSelectedPrediction] = useState(null)
   const [hasSubmittedPrediction, setHasSubmittedPrediction] = useState(false)
+
+  useEffect(() => {
+    if (initialStage) {
+      setStage(initialStage)
+    }
+  }, [initialStage])
 
   // ==========================================
   // STATE MODUL 1: FAKTOR LAJU REAKSI
@@ -277,44 +289,46 @@ export default function PoeSimulation({ module, onCompletePoe, isCompleted = fal
   return (
     <div className="poe-container">
       {/* POE Stepper Navigation */}
-      <div className="poe-stepper-header">
-        <div
-          className={`poe-step-chip ${stage === 'predict' ? 'active' : hasSubmittedPrediction ? 'completed' : ''}`}
-          onClick={() => setStage('predict')}
-        >
-          <div className="step-num">1</div>
-          <div className="step-label">
-            <span className="step-title">Tahap Predict</span>
-            <small>Dugaan Awal</small>
+      {!hideStepper && (
+        <div className="poe-stepper-header">
+          <div
+            className={`poe-step-chip ${stage === 'predict' ? 'active' : hasSubmittedPrediction ? 'completed' : ''}`}
+            onClick={() => setStage('predict')}
+          >
+            <div className="step-num">1</div>
+            <div className="step-label">
+              <span className="step-title">Tahap Predict</span>
+              <small>Dugaan Awal</small>
+            </div>
+          </div>
+
+          <div className="poe-step-divider"></div>
+
+          <div
+            className={`poe-step-chip ${stage === 'observe' ? 'active' : stage === 'explain' ? 'completed' : ''} ${!hasSubmittedPrediction ? 'disabled' : ''}`}
+            onClick={() => hasSubmittedPrediction && setStage('observe')}
+          >
+            <div className="step-num">2</div>
+            <div className="step-label">
+              <span className="step-title">Tahap Observe</span>
+              <small>Simulasi Interaktif</small>
+            </div>
+          </div>
+
+          <div className="poe-step-divider"></div>
+
+          <div
+            className={`poe-step-chip ${stage === 'explain' ? 'active' : isCompleted ? 'completed' : ''} ${stage !== 'explain' && !isCompleted ? 'disabled' : ''}`}
+            onClick={() => (stage === 'explain' || isCompleted) && setStage('explain')}
+          >
+            <div className="step-num">3</div>
+            <div className="step-label">
+              <span className="step-title">Tahap Explain</span>
+              <small>Konfirmasi Ilmiah</small>
+            </div>
           </div>
         </div>
-
-        <div className="poe-step-divider"></div>
-
-        <div
-          className={`poe-step-chip ${stage === 'observe' ? 'active' : stage === 'explain' ? 'completed' : ''} ${!hasSubmittedPrediction ? 'disabled' : ''}`}
-          onClick={() => hasSubmittedPrediction && setStage('observe')}
-        >
-          <div className="step-num">2</div>
-          <div className="step-label">
-            <span className="step-title">Tahap Observe</span>
-            <small>Simulasi Interaktif</small>
-          </div>
-        </div>
-
-        <div className="poe-step-divider"></div>
-
-        <div
-          className={`poe-step-chip ${stage === 'explain' ? 'active' : isCompleted ? 'completed' : ''} ${stage !== 'explain' && !isCompleted ? 'disabled' : ''}`}
-          onClick={() => (stage === 'explain' || isCompleted) && setStage('explain')}
-        >
-          <div className="step-num">3</div>
-          <div className="step-label">
-            <span className="step-title">Tahap Explain</span>
-            <small>Konfirmasi Ilmiah</small>
-          </div>
-        </div>
-      </div>
+      )}
 
       {/* ========================================================
           TAHAP 1: PREDICT (MEMBUAT PREDIKSI)
@@ -369,17 +383,19 @@ export default function PoeSimulation({ module, onCompletePoe, isCompleted = fal
           ======================================================== */}
       {stage === 'observe' && (
         <div className="poe-section-content observe-phase">
-          <div className="observe-guide-banner">
-            <div className="guide-icon-box">
-              <Eye size={20} />
+          {!hideStepper && selectedPrediction && (
+            <div className="observe-guide-banner">
+              <div className="guide-icon-box">
+                <Eye size={20} />
+              </div>
+              <div>
+                <strong>Tahap Observe: Lakukan Eksperimen & Amati Buktinya!</strong>
+                <p>
+                  Prediksi Anda: <em>"{selectedPrediction?.text}"</em>. Sekarang ubah variabel di bawah dan perhatikan apa yang terjadi!
+                </p>
+              </div>
             </div>
-            <div>
-              <strong>Tahap Observe: Lakukan Eksperimen & Amati Buktinya!</strong>
-              <p>
-                Prediksi Anda: <em>"{selectedPrediction?.text}"</em>. Sekarang ubah variabel di bawah dan perhatikan apa yang terjadi!
-              </p>
-            </div>
-          </div>
+          )}
 
           {/* SIMULASI INTERAKTIF MODUL 1: FAKTOR LAJU */}
           {module.id === 'faktor-laju' && (
@@ -980,17 +996,19 @@ export default function PoeSimulation({ module, onCompletePoe, isCompleted = fal
             </div>
           )}
 
-          {/* Action Row untuk Lanjut ke Explain */}
-          <div className="poe-action-row">
-            <button
-              type="button"
-              className="btn-poe-submit"
-              onClick={handleProceedToExplain}
-            >
-              <span>Lanjut ke Tahap 3: Explain (Penjelasan Ilmiah)</span>
-              <ArrowRight size={18} />
-            </button>
-          </div>
+          {/* Action Row untuk Lanjut ke Explain (hanya tampil jika standalone / bukan dari PoeInteractiveSection) */}
+          {!hideStepper && (
+            <div className="poe-action-row">
+              <button
+                type="button"
+                className="btn-poe-submit"
+                onClick={handleProceedToExplain}
+              >
+                <span>Lanjut ke Tahap 3: Explain (Penjelasan Ilmiah)</span>
+                <ArrowRight size={18} />
+              </button>
+            </div>
+          )}
         </div>
       )}
 
