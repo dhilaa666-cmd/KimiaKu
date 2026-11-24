@@ -83,17 +83,17 @@ export default function Navbar({
             Beranda
           </button>
 
-          {/* Akses Langsung Kuis Diagnostik (Bab 3) */}
+          {/* Akses Langsung Kuis Evaluasi (Bab 3) */}
           <button
             type="button"
             className={`nav-btn nav-btn-kuis ${currentView === 'kuis' ? 'active' : ''}`}
             onClick={() => {
               if (onOpenKuis) onOpenKuis()
             }}
-            title="Kuis Diagnostik 5 Soal Laju Reaksi & Penyimpanan Local First"
+            title="Kuis Evaluasi 10 Soal Laju Reaksi & Penyimpanan Local First"
           >
             <HelpCircle size={15} />
-            <span>Kuis Diagnostik</span>
+            <span>Kuis Evaluasi</span>
           </button>
 
           {/* Dropdown Akses Langsung Semua Modul */}
@@ -234,7 +234,7 @@ export default function Navbar({
               }}
             >
               <HelpCircle size={16} style={{ marginRight: '8px', verticalAlign: 'middle' }} />
-              <span>Kuis Diagnostik Bab 3 (5 Soal)</span>
+              <span>Kuis Evaluasi Bab 3 (10 Soal)</span>
             </button>
 
             <div className="mobile-auth-wrapper">

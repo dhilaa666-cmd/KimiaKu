@@ -11,6 +11,10 @@ Alur navigasi utama aplikasi web pembelajaran kimia berbasis POE:
    - **Tahap Observe (Pengamatan):** Setelah memilih, sistem membuka visualisasi makroskopis dan deskripsi mikroskopis tumbukan partikel.
    - **Tahap Explain (Penjelasan):** Siswa membaca rangkuman ilmiah mengenai alasan mekanistik faktor tersebut memengaruhi laju reaksi.
 
-3. **Navigasi Kembali**
+3. **Kuis Evaluasi (`/kuis`)**
+   - Siswa mengerjakan **10 Soal Evaluasi Laju Reaksi** yang mencakup seluruh konsep dari Modul 1 sampai Modul 3.
+   - Sistem melakukan kalkulasi skor dinamis (0–100) dan menyajikan pembahasan ilmiah komprehensif untuk setiap butir soal.
+
+4. **Navigasi Kembali**
    - Pengguna dapat menekan tombol kembali untuk pulang ke Halaman Beranda.
    

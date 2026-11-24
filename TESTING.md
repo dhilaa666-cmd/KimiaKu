@@ -19,7 +19,7 @@
 | **6. Modul POE (Predict)** | ✅ **PASSED** | Pilihan hipotesis awal dan kolom catatan siswa dapat diisi dan disimpan. |
 | **7. Modul POE (Observe & Simulasi)** | ✅ **PASSED** | Canvas partikel 2D dinamis, slider suhu/konsentrasi/katalis, dan telemetri tumbukan aktif. |
 | **8. Modul POE (Explain)** | ✅ **PASSED** | Tahap konfirmasi ilmiah dan refleksi konseptual tampil tanpa kendala. |
-| **9. Kuis Interaktif (Diagnostik)** | ✅ **PASSED** | 5 butir soal dimuat, opsi jawaban dapat dipilih, progress bar terupdate. |
+| **9. Kuis Interaktif (Evaluasi)** | ✅ **PASSED** | 10 butir soal dimuat, opsi jawaban dapat dipilih, progress bar terupdate. |
 | **10. Penilaian & Skor Kuis** | ✅ **PASSED** | Pengiriman kuis berhasil, skor otomatis dihitung (40/100) beserta pembahasan ilmiah. |
 | **11. Stabilitas Runtime JavaScript** | ✅ **PASSED** | **0 Uncaught Error**, tidak ada React Crash atau Error Boundary terpicu. |
 
@@ -37,7 +37,7 @@ Aplikasi menampilkan identitas brand KimiaKu, form login email & kata sandi, tom
 ### 2. Spotlight Onboarding (Tur Panduan 5 Langkah)
 Spotlight otomatis menyorot elemen navigasi utama dan memandu siswa memahami alur belajar:
 - **Langkah 1**: Eksplorasi Modul POE
-- **Langkah 2**: Kuis Interaktif & Diagnostik
+- **Langkah 2**: Kuis Interaktif & Evaluasi
 - **Langkah 3**: Pantau Progres Belajar
 - **Langkah 4**: Pencarian Cepat & Pustaka
 - **Langkah 5**: Buka Ulang Panduan Kapan Saja Lewat Tombol Footer
@@ -74,8 +74,8 @@ Modul detail menyajikan tiga tahapan terstruktur dengan materi makroskopis dan s
 
 ---
 
-### 4. Kuis Interaktif Diagnostik Bab 3
-Pengerjaan kuis diagnostik 5 butir soal dengan deteksi miskonsepsi dan pembahasan ilmiah otomatis:
+### 4. Kuis Interaktif Evaluasi Bab 3
+Pengerjaan kuis evaluasi 10 butir soal dengan deteksi miskonsepsi dan pembahasan ilmiah otomatis:
 
 | Halaman Soal Kuis | Opsi Jawaban Terpilih |
 | :---: | :---: |

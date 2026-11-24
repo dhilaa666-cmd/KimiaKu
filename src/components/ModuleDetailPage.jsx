@@ -191,16 +191,16 @@ export default function ModuleDetailPage({
             </button>
           )}
 
-          {/* Tombol Kuis Diagnostik */}
+          {/* Tombol Kuis Evaluasi */}
           {onOpenKuis && (
             <button
               type="button"
               className="btn-quick-quiz-topbar"
               onClick={onOpenKuis}
-              title="Kerjakan Kuis Diagnostik 5 Soal"
+              title="Kerjakan Kuis Evaluasi 10 Soal"
             >
               <HelpCircle size={16} />
-              <span>{savedQuizScore !== null ? `Skor Kuis: ${savedQuizScore}%` : 'Kuis Diagnostik'}</span>
+              <span>{savedQuizScore !== null ? `Skor Kuis: ${savedQuizScore}%` : 'Kuis Evaluasi'}</span>
             </button>
           )}
         </div>
@@ -453,11 +453,11 @@ export default function ModuleDetailPage({
           <div className="tab-pane-mindmap">
             <ConceptMindMap onOpenGlossary={() => setIsGlossaryOpen(true)} />
 
-            {/* Kartu CTA Kuis Diagnostik di Akhir */}
+            {/* Kartu CTA Kuis Evaluasi di Akhir */}
             <div className="mindmap-quiz-cta-card">
               <div className="quiz-cta-left">
                 <div className="quiz-cta-badge">Langkah Terakhir Modul</div>
-                <h3 className="quiz-cta-title">Uji Kompetensi Kinetika Kimia (5 Soal Diagnostik)</h3>
+                <h3 className="quiz-cta-title">Uji Kompetensi Kinetika Kimia (10 Soal Evaluasi)</h3>
                 <p className="quiz-cta-desc">
                   Ukur pemahaman Anda mengenai seluruh faktor laju reaksi, energi aktivasi (Ea), persamaan laju, dan teori tumbukan. Jawaban tersimpan otomatis secara Local-First dan tersinkronisasi ke Firestore.
                 </p>
@@ -469,7 +469,7 @@ export default function ModuleDetailPage({
                   onClick={onOpenKuis}
                 >
                   <HelpCircle size={18} />
-                  <span>Mulai Kuis Diagnostik Sekarang</span>
+                  <span>Mulai Kuis Evaluasi Sekarang</span>
                 </button>
               </div>
             </div>

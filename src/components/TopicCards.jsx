@@ -182,7 +182,7 @@ export default function TopicCards({
                     type="button"
                     className="badge-chip quiz-done clickable"
                     onClick={() => onOpenModule(module.id, 'kuis')}
-                    title="Buka Kuis Diagnostik (Lihat Skor & Pembahasan)"
+                    title="Buka Kuis Evaluasi (Lihat Skor & Pembahasan)"
                   >
                     <CheckCircle2 size={12} />
                     <span>Skor Kuis: {quizScore}%</span>
@@ -192,10 +192,10 @@ export default function TopicCards({
                     type="button"
                     className="badge-chip quiz-pending clickable"
                     onClick={() => onOpenModule(module.id, 'kuis')}
-                    title="Kerjakan Kuis Diagnostik 5 Soal"
+                    title="Kerjakan Kuis Evaluasi 10 Soal"
                   >
                     <HelpCircle size={12} />
-                    <span>Kuis 5 Soal</span>
+                    <span>Kuis 10 Soal</span>
                   </button>
                 )}
               </div>

@@ -189,7 +189,7 @@ export default function KuisLajuReaksi({ onBack, onCompleteScore, currentUser = 
 
         <div className="kuis-status-badge">
           <HelpCircle size={16} className="text-coral" />
-          <span>Kuis Diagnostik Bab 3 • 5 Soal Laju Reaksi</span>
+          <span>Kuis Evaluasi Bab 3 • 10 Soal Laju Reaksi</span>
         </div>
 
         <div className="kuis-top-actions">
@@ -261,7 +261,7 @@ export default function KuisLajuReaksi({ onBack, onCompleteScore, currentUser = 
               </span>
             </div>
             <h3 className="score-title">
-              Hasil Kuis Diagnostik Anda: {score}%
+              Hasil Kuis Evaluasi Anda: {score}%
             </h3>
             <p className="score-desc">
               Tersimpan aman di peramban Anda (Local First:{' '}
@@ -307,12 +307,12 @@ export default function KuisLajuReaksi({ onBack, onCompleteScore, currentUser = 
         </div>
       )}
 
-      {/* Daftar 5 Soal Kuis Diagnostik */}
+      {/* Daftar 10 Soal Kuis Evaluasi */}
       <div className="soal-list-wrapper">
         {soalList.map((soal, idx) => {
           const selectedAnswer = answers[soal.id]
           const isCorrect = selectedAnswer === soal.jawabanBenar
-          const optionLetters = ['A', 'B', 'C', 'D']
+          const optionLetters = ['A', 'B', 'C', 'D', 'E']
 
           return (
             <div
@@ -340,7 +340,7 @@ export default function KuisLajuReaksi({ onBack, onCompleteScore, currentUser = 
                     {isCorrect ? (
                       <>
                         <CheckCircle2 size={16} />
-                        <span>Jawaban Benar (+20 Poin)</span>
+                        <span>Jawaban Benar (+{Math.round(100 / (soalList.length || 10))} Poin)</span>
                       </>
                     ) : (
                       <>
@@ -538,7 +538,7 @@ export default function KuisLajuReaksi({ onBack, onCompleteScore, currentUser = 
                             <CheckCircle2 size={13} className={isPass ? 'text-emerald' : 'text-muted'} />
                             <span>
                               {hasScore
-                                ? `${correctCount} dari 5 Soal Benar`
+                                ? `${correctCount} dari ${soalList.length} Soal Benar`
                                 : `${Object.keys(item.answers || {}).length} Soal Dijawab`}
                             </span>
                           </div>

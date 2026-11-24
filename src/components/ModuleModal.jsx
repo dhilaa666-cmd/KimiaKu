@@ -157,7 +157,7 @@ export default function ModuleModal({
             onClick={() => setActiveTab('kuis')}
           >
             <HelpCircle size={16} />
-            <span>Kuis Pemahaman (5 Soal)</span>
+            <span>Kuis Evaluasi (10 Soal)</span>
             {savedQuizScore !== null && (
               <span className="tab-score-badge">{savedQuizScore}%</span>
             )}

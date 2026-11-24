@@ -12,7 +12,7 @@ const TOUR_STEPS = [
     },
     {
         selector: '.sidebar-nav-list .sidebar-nav-item:nth-of-type(3), .nav-btn-kuis',
-        title: '2. Kuis Interaktif & Diagnostik',
+        title: '2. Kuis Interaktif & Evaluasi',
         description:
             'Uji pemahamanmu di menu Kuis Interaktif setelah mencoba simulasi. Sistem akan mengevaluasi penguasaan konsep sekaligus mendeteksi miskonsepsi.',
         preferredPlacement: 'right'

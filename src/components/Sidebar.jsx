@@ -44,8 +44,8 @@ export default function Sidebar({
     },
     {
       id: 'kuis',
-      label: 'Kuis Interaktif',
-      sublabel: '5 Soal Diagnostik',
+      label: 'Kuis Evaluasi',
+      sublabel: '10 Soal Evaluasi',
       icon: HelpCircle
     },
     {

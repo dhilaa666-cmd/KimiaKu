@@ -76,10 +76,10 @@ export default function HeroSection({ onStartLearning, onExplorePoe, onOpenKuis,
                 type="button"
                 className="btn-tertiary-hero"
                 onClick={onOpenKuis}
-                title="Buka Kuis Diagnostik 5 Soal Laju Reaksi"
+                title="Buka Kuis Evaluasi 10 Soal Laju Reaksi"
               >
                 <HelpCircle size={18} />
-                <span>Kuis Diagnostik (5 Soal)</span>
+                <span>Kuis Evaluasi (10 Soal)</span>
               </button>
             )}
           </div>

@@ -170,7 +170,7 @@ export const modulFaktorLaju = {
     }
   ],
 
-  // 5 Soal Pilihan Ganda Kuis Diagnostik Laju Reaksi (Bab 3)
+  // 10 Soal Pilihan Ganda Kuis Evaluasi Laju Reaksi (Bab 3)
   kuisDiagnostik: [
     {
       id: 'kuis-1',
@@ -251,6 +251,91 @@ export const modulFaktorLaju = {
       jawabanBenarIndex: 1,
       pembahasan:
         'Dua syarat mutlak terjadinya tumbukan efektif menurut Teori Tumbukan adalah: (1) Syarat Energi: energi kinetik total partikel saat bertumbukan harus melampaui rintangan energi aktivasi (E ≥ Eₐ) agar ikatan lama dapat terputus dan terbentuk kompleks teraktivasi. (2) Syarat Geometri/Orientasi: partikel harus bertumbukan dengan orientasi sudut ruang yang tepat agar atom-atom yang akan berikatan saling berhadapan. Jika salah satu syarat tidak terpenuhi, partikel hanya akan memantul kembali tanpa terjadi reaksi.'
+    },
+    {
+      id: 'kuis-6',
+      faktor: 'Modul 1: Stoikiometri Laju Reaksi',
+      pertanyaan:
+        'Pada reaksi pembentukan gas amonia: N2(g) + 3H2(g) → 2NH3(g), jika laju pengurangan gas H2 adalah 0,06 M/s, berapakah laju pembentukan gas NH3?',
+      opsi: [
+        '0,02 M/s',
+        '0,04 M/s',
+        '0,06 M/s',
+        '0,09 M/s',
+        '0,12 M/s'
+      ],
+      jawabanBenar: 'B',
+      jawabanBenarIndex: 1,
+      pembahasan:
+        'Perbandingan laju reaksi sebanding dengan koefisien reaksinya: v NH3 = (2/3) × 0,06 M/s = 0,04 M/s.'
+    },
+    {
+      id: 'kuis-7',
+      faktor: 'Modul 1: Persamaan & Orde Reaksi',
+      pertanyaan:
+        'Dari percobaan reaksi 2NO(g) + H2(g) → N2O(g) + H2O(g), jika [NO] dinaikkan 2× pada [H2] tetap, laju reaksi menjadi 4× lebih cepat. Sementara jika [H2] dinaikkan 2× pada [NO] tetap, laju reaksi menjadi 2× lebih cepat. Persamaan laju reaksi tersebut adalah...',
+      opsi: [
+        'v = k[NO][H2]',
+        'v = k[NO][H2]²',
+        'v = k[NO]²[H2]',
+        'v = k[NO]²[H2]²',
+        'v = k[NO]⁴[H2]²'
+      ],
+      jawabanBenar: 'C',
+      jawabanBenarIndex: 2,
+      pembahasan:
+        'Orde terhadap NO adalah 2 (2^x = 4) dan orde terhadap H2 adalah 1 (2^y = 2), sehingga persamaan lajunya v = k[NO]²[H2].'
+    },
+    {
+      id: 'kuis-8',
+      faktor: 'Modul 2: Teori Tumbukan & Energi Aktivasi',
+      pertanyaan:
+        'Menurut Teori Tumbukan, tidak semua tumbukan antarpartikel pereaksi dapat menghasilkan zat produk. Syarat utama agar suatu tumbukan tergolong sebagai tumbukan efektif adalah...',
+      opsi: [
+        'Partikel memiliki massa molekul relatif yang sama besar',
+        'Partikel bertumbukan dengan orientasi yang tepat dan memiliki energi kinetik minimal sebesar energi aktivasi (Ea)',
+        'Reaksi berlangsung dalam wadah tertutup pada suhu ruang',
+        'Volume larutan pereaksi lebih besar daripada volume produk',
+        'Konsentrasi seluruh pereaksi dibuat sama sebelum dicampurkan'
+      ],
+      jawabanBenar: 'B',
+      jawabanBenarIndex: 1,
+      pembahasan:
+        'Tumbukan efektif terjadi jika partikel bertumbukan dengan arah/orientasi ruang yang tepat serta memiliki energi minimal sebesar energi aktivasi (Ea).'
+    },
+    {
+      id: 'kuis-9',
+      faktor: 'Modul 3: Luas Permukaan Bidang Sentuh',
+      pertanyaan:
+        'Sebanyak 5 gram batu pualam (CaCO3) berbentuk serbuk bereaksi jauh lebih cepat dengan larutan HCl 1 M dibandingkan 5 gram batu pualam berbentuk bongkahan pada suhu yang sama. Penjelasan mikroskopis yang paling tepat adalah...',
+      opsi: [
+        'Serbuk CaCO3 menurunkan energi aktivasi reaksi secara langsung',
+        'Serbuk CaCO3 meningkatkan energi kinetik rata-rata molekul HCl',
+        'Serbuk memiliki luas permukaan bidang sentuh yang lebih besar sehingga frekuensi tumbukan antarpartikel meningkat',
+        'Massa jenis serbuk CaCO3 lebih kecil sehingga mudah menguap',
+        'Konsentrasi larutan HCl otomatis bertambah saat dicampur serbuk'
+      ],
+      jawabanBenar: 'C',
+      jawabanBenarIndex: 2,
+      pembahasan:
+        'Bentuk serbuk memperluas permukaan bidang sentuh yang berinteraksi langsung dengan larutan HCl sehingga frekuensi tumbukan efektif meningkat.'
+    },
+    {
+      id: 'kuis-10',
+      faktor: 'Modul 3: Peran & Mekanisme Katalis',
+      pertanyaan:
+        'Penambahan katalis pada suatu reaksi kimia dapat mempercepat laju reaksi tanpa ikut habis bereaksi. Bagaimana cara kerja katalis ditinjau dari aspek energi dan partikel?',
+      opsi: [
+        'Meningkatkan kecepatan gerak dan energi kinetik rata-rata partikel pereaksi',
+        'Menaikkan suhu sistem reaksi sehingga partikel bergerak lebih cepat',
+        'Menyediakan jalur mekanisme reaksi alternatif dengan energi aktivasi (Ea) yang lebih rendah',
+        'Memperbesar konsentrasi partikel pereaksi di dalam wadah reaksi',
+        'Mengubah nilai perubahan entalpi (ΔH) reaksi menjadi lebih negatif'
+      ],
+      jawabanBenar: 'C',
+      jawabanBenarIndex: 2,
+      pembahasan:
+        'Katalis tidak mempercepat gerak partikel, melainkan menurunkan energi aktivasi (Ea) melalui jalur reaksi alternatif.'
     }
   ]
 }
