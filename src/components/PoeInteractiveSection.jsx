@@ -577,7 +577,7 @@ export default function PoeInteractiveSection({
             </div>
           )}
 
-          {/* SETELAH SUBMIT: Evaluasi Kebenaran Prediksi Awal & Mekanisme Sains Resmi */}
+          {/* SETELAH SUBMIT: Evaluasi Kebenaran Prediksi Awal & Mekanisme Sains Resmi (disembunyikan sebelum siswa submit jawaban Explain) */}
           {isSubmitted && (
             <>
               <div className="prediction-recap-box" style={{ background: '#F0F9FF', borderLeftColor: '#0EA5E9' }}>
