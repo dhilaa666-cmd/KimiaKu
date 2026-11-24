@@ -144,6 +144,7 @@ export default function App() {
       return false
     }
   })
+  const [loadedAccount, setLoadedAccount] = useState(null)
 
   // Temuan 03-11: Inisialisasi posisi halaman dari hash URL / sessionStorage
   const [currentView, setCurrentView] = useState(() => parseLocationState().view)
@@ -248,10 +249,14 @@ export default function App() {
     } catch {
       setPoeRecords([])
     }
+
+    setLoadedAccount(accId)
   }, [currentUser?.uid, isGuest])
 
   useEffect(() => {
     const accId = currentUser?.uid || (isGuest ? 'guest' : 'guest')
+    if (loadedAccount !== accId) return
+
     const progressKey = `${STORAGE_PROGRESS_KEY}-${accId}`
     try {
       localStorage.setItem(progressKey, JSON.stringify(completedTopics))
@@ -261,10 +266,12 @@ export default function App() {
     } catch (e) {
       console.warn('Gagal menyimpan progres ke localStorage:', e)
     }
-  }, [completedTopics, currentUser?.uid, isGuest])
+  }, [completedTopics, loadedAccount])
 
   useEffect(() => {
     const accId = currentUser?.uid || (isGuest ? 'guest' : 'guest')
+    if (loadedAccount !== accId) return
+
     const quizKey = `${STORAGE_QUIZ_KEY}-${accId}`
     try {
       localStorage.setItem(quizKey, JSON.stringify(quizScores))
@@ -274,10 +281,12 @@ export default function App() {
     } catch (e) {
       console.warn('Gagal menyimpan nilai kuis ke localStorage:', e)
     }
-  }, [quizScores, currentUser?.uid, isGuest])
+  }, [quizScores, loadedAccount])
 
   useEffect(() => {
     const accId = currentUser?.uid || (isGuest ? 'guest' : 'guest')
+    if (loadedAccount !== accId) return
+
     const poeKey = `${STORAGE_POE_KEY}-${accId}`
     try {
       localStorage.setItem(poeKey, JSON.stringify(poeRecords))
@@ -287,7 +296,7 @@ export default function App() {
     } catch (e) {
       console.warn('Gagal menyimpan data POE ke localStorage:', e)
     }
-  }, [poeRecords, currentUser?.uid, isGuest])
+  }, [poeRecords, loadedAccount])
 
   // Temuan 03-11: Sinkronisasi URL hash dan sessionStorage saat state rute berubah
   useEffect(() => {
@@ -403,6 +412,7 @@ export default function App() {
   }
 
   const handleLogout = () => {
+    setLoadedAccount(null)
     setCurrentUser(null)
     setIsGuest(false)
     setIsOnboardingOpen(false)
