@@ -430,6 +430,8 @@ export default function ModuleDetailPage({
                 poeStep={poeStep}
                 setPoeStep={setPoeStep}
                 onCompletePoe={onCompletePoe}
+                onToggleComplete={onToggleComplete}
+                isCompleted={isCompleted}
                 currentUser={currentUser}
                 isGuest={isGuest}
               />

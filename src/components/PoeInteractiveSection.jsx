@@ -12,6 +12,7 @@ import {
   RotateCw,
   AlertCircle
 } from 'lucide-react'
+import confetti from 'canvas-confetti'
 import {
   getStoredPoeData,
   savePoeDraft,
@@ -24,6 +25,8 @@ import PoeSimulation from './PoeSimulation'
 export default function PoeInteractiveSection({
   module,
   onCompletePoe,
+  onToggleComplete,
+  isCompleted = false,
   currentUser,
   isGuest,
   poeStep: controlledPoeStep,
@@ -57,6 +60,9 @@ export default function PoeInteractiveSection({
   const [syncStatus, setSyncStatus] = useState(() => {
     return getStoredPoeData(module.id, currentUid)?.syncStatus || SYNC_STATUS.LOCAL
   })
+  const [syncErrorMessage, setSyncErrorMessage] = useState(() => {
+    return getStoredPoeData(module.id, currentUid)?.syncError || null
+  })
   const [isSaving, setIsSaving] = useState(false)
   const [saveMessage, setSaveMessage] = useState('')
 
@@ -72,6 +78,7 @@ export default function PoeInteractiveSection({
     setExplainText(data?.explainText || '')
     setIsSubmitted(Boolean(data?.isSubmitted))
     setSyncStatus(data?.syncStatus || SYNC_STATUS.LOCAL)
+    setSyncErrorMessage(data?.syncError || null)
     isInitialMount.current = true
   }, [module.id, currentUid])
 
@@ -209,30 +216,51 @@ export default function PoeInteractiveSection({
     }
 
     setIsSaving(true)
-    const saved = savePoeSubmission({
-      moduleId: module.id,
-      predictChoiceId,
-      predictText,
-      observeNotes,
-      explainText,
-      currentUser,
-      isGuest
-    }, currentUid)
+    setSyncErrorMessage(null)
 
+    // Bersihkan semua properti agar tidak ada nilai undefined yang ditolak Firestore
+    const safePayload = {
+      moduleId: String(module?.id || ''),
+      predictChoiceId: String(predictChoiceId || ''),
+      predictText: String(predictText || '').trim(),
+      observeNotes: String(observeNotes || '').trim(),
+      explainText: String(explainText || '').trim(),
+      currentUser: currentUser || null,
+      isGuest: Boolean(isGuest)
+    }
+
+    const saved = savePoeSubmission(safePayload, currentUid)
+
+    // Buka kotak refleksi & mekanisme sains resmi
     setIsSubmitted(true)
     let finalStatus = saved.syncStatus
     setSyncStatus(finalStatus)
 
-    // Mark completion in parent
+    // Tandai penyelesaian di modul agar progres bertambah
     if (onCompletePoe) {
       onCompletePoe(module.id)
+    }
+    if (onToggleComplete && !isCompleted) {
+      onToggleComplete(module.id)
+    }
+
+    // Jalankan efek konfeti perayaan
+    try {
+      confetti({
+        particleCount: 90,
+        spread: 75,
+        origin: { y: 0.6 }
+      })
+    } catch (err) {
+      console.warn('[KimiaKu POE] Confetti error:', err)
     }
 
     // Jika pengguna dalam mode tamu atau belum login
     if (isGuest || !currentUser?.uid) {
       setSyncStatus(SYNC_STATUS.LOCAL)
+      setSyncErrorMessage(null)
       setIsSaving(false)
-      alert('Tersimpan secara lokal di perangkat (Mode Tamu). Masuk dengan akun Google untuk dapat mengirimkan tugas langsung ke Panel Guru secara daring.')
+      alert('Tugas Sintaks POE Anda berhasil diselesaikan dan tersimpan di perangkat lokal (Mode Tamu). Masuk dengan akun Google untuk dapat mengirimkan tugas langsung ke Panel Guru secara daring.')
       return
     }
 
@@ -242,18 +270,30 @@ export default function PoeInteractiveSection({
       const res = await syncPoeToFirestore(currentUser, module.id)
       if (res.success && !res.offline) {
         setSyncStatus(SYNC_STATUS.SYNCED)
+        setSyncErrorMessage(null)
         finalStatus = SYNC_STATUS.SYNCED
         alert('Tugas Sintaks POE Anda berhasil disimpan dan dikirimkan ke Panel Guru!')
+      } else if (res.offline) {
+        setSyncStatus(SYNC_STATUS.LOCAL)
+        const offlineMsg = res.message || 'Firebase Firestore sedang luring atau belum terkonfigurasi di lingkungan ini.'
+        setSyncErrorMessage(offlineMsg)
+        finalStatus = SYNC_STATUS.LOCAL
+        alert(`Tugas Sintaks POE Anda berhasil disimpan di penyimpanan lokal. (${offlineMsg})`)
       } else {
+        const errDetail = res.error || res.message || 'Gagal menyinkronkan tugas ke cloud.'
+        console.error('[KimiaKu POE Sync Error]:', errDetail, res)
         setSyncStatus(SYNC_STATUS.FAILED)
+        setSyncErrorMessage(errDetail)
         finalStatus = SYNC_STATUS.FAILED
-        alert('Gagal menyinkronkan tugas ke cloud. Jawaban Anda tetap tersimpan secara aman di perangkat lokal. Silakan gunakan tombol "Coba Lagi" untuk mengirim ulang.')
+        alert(`Jawaban Anda aman tersimpan di perangkat lokal, namun sinkronisasi ke cloud gagal: ${errDetail}`)
       }
     } catch (err) {
-      console.warn('Sync POE failed:', err)
+      const errDetail = err?.message || err?.code || String(err)
+      console.error('[KimiaKu POE Sync Exception]:', err)
       setSyncStatus(SYNC_STATUS.FAILED)
+      setSyncErrorMessage(errDetail)
       finalStatus = SYNC_STATUS.FAILED
-      alert('Gagal menyinkronkan tugas ke cloud. Jawaban Anda tetap tersimpan secara aman di perangkat lokal. Silakan periksa koneksi internet Anda dan gunakan tombol "Coba Lagi".')
+      alert(`Jawaban Anda aman tersimpan di perangkat lokal. Gagal terhubung ke cloud: ${errDetail}`)
     } finally {
       setIsSaving(false)
     }
@@ -267,19 +307,40 @@ export default function PoeInteractiveSection({
     }
     setIsRetrying(true)
     setSyncStatus(SYNC_STATUS.PENDING)
+    setSyncErrorMessage(null)
     try {
       const res = await syncPoeToFirestore(currentUser, module.id)
       if (res.success && !res.offline) {
         setSyncStatus(SYNC_STATUS.SYNCED)
+        setSyncErrorMessage(null)
+        try {
+          confetti({
+            particleCount: 70,
+            spread: 60,
+            origin: { y: 0.6 }
+          })
+        } catch (e) {
+          console.warn(e)
+        }
         alert('Tugas Sintaks POE Anda berhasil disinkronkan dan dikirimkan ke Panel Guru!')
+      } else if (res.offline) {
+        setSyncStatus(SYNC_STATUS.LOCAL)
+        const offlineMsg = res.message || 'Firebase Firestore sedang luring atau belum terkonfigurasi di lingkungan ini.'
+        setSyncErrorMessage(offlineMsg)
+        alert(`Data tersimpan di penyimpanan lokal: ${offlineMsg}`)
       } else {
+        const errDetail = res.error || res.message || 'Gagal menyinkronkan tugas ke cloud.'
+        console.error('[KimiaKu POE Retry Sync Error]:', errDetail, res)
         setSyncStatus(SYNC_STATUS.FAILED)
-        alert('Sinkronisasi ulang gagal. Jawaban Anda tetap tersimpan aman di perangkat lokal.')
+        setSyncErrorMessage(errDetail)
+        alert(`Sinkronisasi ulang belum berhasil: ${errDetail}. Jawaban Anda tetap tersimpan aman di perangkat lokal.`)
       }
     } catch (err) {
-      console.warn('Retry sync POE error:', err)
+      const errDetail = err?.message || err?.code || String(err)
+      console.error('[KimiaKu POE Retry Exception]:', err)
       setSyncStatus(SYNC_STATUS.FAILED)
-      alert('Sinkronisasi ulang gagal. Periksa koneksi internet Anda.')
+      setSyncErrorMessage(errDetail)
+      alert(`Sinkronisasi ulang gagal: ${errDetail}. Periksa koneksi internet atau hak akses Firebase Anda.`)
     } finally {
       setIsRetrying(false)
     }
@@ -650,14 +711,31 @@ export default function PoeInteractiveSection({
             </div>
           </div>
 
-          {/* Baris Peringatan jika Gagal Sinkronisasi dengan Tombol Coba Lagi */}
+          {/* Baris Peringatan jika Gagal Sinkronisasi dengan Tombol Coba Lagi & Detail Error Inline */}
           {syncStatus === SYNC_STATUS.FAILED && (
-            <div className="poe-sync-alert-banner">
+            <div className="poe-sync-alert-banner" style={{ borderLeft: '4px solid #EF4444', background: '#FEF2F2' }}>
               <div className="alert-content">
-                <AlertCircle size={18} className="text-amber" />
+                <AlertCircle size={20} style={{ color: '#DC2626', flexShrink: 0, marginTop: '2px' }} />
                 <div className="alert-text-block">
-                  <strong>Sinkronisasi ke Cloud Belum Berhasil</strong>
-                  <p>Jawaban Anda tetap aman tersimpan di perangkat lokal ini. Silakan gunakan tombol Coba Lagi.</p>
+                  <strong style={{ color: '#991B1B' }}>Sinkronisasi ke Cloud Belum Berhasil</strong>
+                  <p style={{ color: '#7F1D1D', margin: '4px 0', fontSize: '0.86rem' }}>
+                    Jawaban Anda tetap <strong>aman tersimpan di perangkat lokal</strong> ini dan modul sudah tercatat selesai.
+                  </p>
+                  {syncErrorMessage && (
+                    <div style={{
+                      marginTop: '6px',
+                      padding: '8px 12px',
+                      background: '#FEE2E2',
+                      border: '1px solid #FECACA',
+                      borderRadius: '8px',
+                      fontSize: '0.82rem',
+                      fontFamily: 'monospace',
+                      color: '#991B1B',
+                      wordBreak: 'break-word'
+                    }}>
+                      <strong>Detail Error:</strong> {syncErrorMessage}
+                    </div>
+                  )}
                 </div>
               </div>
               <button
